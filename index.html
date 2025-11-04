@@ -42,28 +42,41 @@
   // 공백 키 방어
   const readKey = (o,k)=> o[k] ?? o[k+" "] ?? o[k.trim()] ?? "";
 
-  async function loadVerse(){
-    try{
-      const url = new URL(API_URL);
-      const q = new URLSearchParams(location.search);
-      for(const [k,v] of q.entries()) url.searchParams.set(k,v);
+ async function loadVerse() {
+  try {
+    $("verse").textContent = "말씀을 불러오는 중...";
+    $("ref").textContent = "-";
+    $("img").style.display = "none";
 
-      const res = await fetch(url.toString(), {cache:"no-store"});
-      const data = await res.json();
-      const v = data.verse || {};
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000); // 5초 타임아웃
 
-      const verse = readKey(v,"Verse");
-      const ref   = readKey(v,"Reference");
-      const img   = readKey(v,"ImageURL");
+    const res = await fetch(API_URL, { cache: "no-store", signal: controller.signal });
+    clearTimeout(timeout);
 
-      $("verse").textContent = verse || "말씀이 없습니다.";
-      $("ref").textContent   = ref || "-";
-      if (img){ $("img").src = img; $("img").style.display = "block"; }
-    }catch(e){
-      $("verse").textContent = "불러오기 실패";
-      console.error(e);
+    if (!res.ok) throw new Error("서버 응답 오류 (" + res.status + ")");
+
+    const data = await res.json();
+    const v = data.verse || {};
+
+    const verse = v.Verse || v["Verse "] || "데이터 없음";
+    const ref = v.Reference || v["Reference "] || "-";
+    const img = v.ImageURL || v["ImageURL "] || "";
+
+    $("verse").textContent = verse;
+    $("ref").textContent = ref;
+    if (img) {
+      $("img").src = img;
+      $("img").style.display = "block";
     }
+
+  } catch (e) {
+    console.warn("불러오기 실패, 재시도 중:", e.message);
+    // 🔁 자동 재시도 (1회)
+    setTimeout(loadVerse, 1500);
+    $("verse").textContent = "불러오기 실패... 잠시 후 재시도 중";
   }
+}
 
   // 저장(브라우저 로컬)
   function saveVerse(){
