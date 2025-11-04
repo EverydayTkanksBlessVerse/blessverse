@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BlessVerse</title>
+<style>
+body {
+  background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+  font-family: "Pretendard", sans-serif;
+  color: #fff;
+  text-align: center;
+  padding: 40px;
+}
+button {
+  background: #62d1ff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  color: #000;
+  font-weight: bold;
+  margin: 10px;
+}
+img {
+  width: 90%;
+  border-radius: 16px;
+  margin-top: 20px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+</style>
+</head>
+<body>
+<h1>오늘의 말씀</h1>
+<p id="verse">로딩 중...</p>
+<p id="ref"></p>
+<img id="img" src="https://via.placeholder.com/600x400?text=BlessVerse" alt="">
+<div>
+  <button onclick="loadVerse()">랜덤 말씀 보기</button>
+  <button onclick="saveVerse()">내 말씀 저장</button>
+</div>
+<ul id="saved"></ul>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/여기에_스크립트_URL_붙여넣기/exec";
+
+async function loadVerse(){
+  const res = await fetch(API_URL);
+  const data = await res.json();
+  const v = data.verse;
+  document.getElementById("verse").textContent = v.Verse;
+  document.getElementById("ref").textContent = v.Reference;
+  document.getElementById("img").src = v.ImageURL;
+}
+
+function saveVerse(){
+  const verse = document.getElementById("verse").textContent;
+  const ref = document.getElementById("ref").textContent;
+  const list = document.getElementById("saved");
+  const li = document.createElement("li");
+  li.textContent = `${ref} - ${verse}`;
+  list.appendChild(li);
+  localStorage.setItem("myVerses", list.innerHTML);
+}
+
+window.onload = ()=>{
+  const saved = localStorage.getItem("myVerses");
+  if(saved) document.getElementById("saved").innerHTML = saved;
+  loadVerse();
+};
+</script>
+</body>
+</html>
+
+
