@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>BlessVerse</title>
+  <style>
+    body{margin:0;font-family:system-ui,AppleSDGothicNeo,Segoe UI; color:#fff;
+      background:linear-gradient(#0e262d,#204a5b) fixed; min-height:100vh; display:flex; flex-direction:column; align-items:center}
+    h1{margin:48px 0 24px;font-size:42px}
+    .btn{background:#6ec1ff;color:#0b1a22;border:0;border-radius:12px;padding:12px 18px;
+      margin:8px; font-weight:700; cursor:pointer}
+    .card{max-width:720px; width:92%; background:rgba(255,255,255,.08); border-radius:16px;
+      padding:20px; box-shadow:0 8px 24px rgba(0,0,0,.25)}
+    #img{width:100%; border-radius:12px; display:none; margin-top:12px}
+    .muted{opacity:.8}
+  </style>
+</head>
+<body>
+  <h1>오늘의 말씀</h1>
+  <div>
+    <button class="btn" id="btn-random">랜덤 말씀 보기</button>
+    <button class="btn" id="btn-save">내 말씀 저장</button>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <div id="verse" class="muted">로딩 중…</div>
+    <div id="ref" class="muted">-</div>
+    <img id="img" alt="verse image"/>
+  </div>
+
+  <div class="card" style="margin:18px 0; display:none" id="saved-wrap">
+    <b>내가 저장한 말씀</b>
+    <ul id="saved" style="line-height:1.7"></ul>
+  </div>
+
+<script>
+  // ⬇⬇ 여기에 Apps Script Web App URL (/exec) 붙여넣기
+  const API_URL = "https://script.google.com/macros/s/AKfycbxdVGmW95vU5iG1H_nKrj_xXs7qD9ruEWdCFXpK33Ka0W-DXOauIzHoyopTLNd4CiMYrQ/exec";
+  const $ = (id)=>document.getElementById(id);
+
+  // 공백 키 방어
+  const readKey = (o,k)=> o[k] ?? o[k+" "] ?? o[k.trim()] ?? "";
+
+  async function loadVerse(){
+    try{
+      const url = new URL(API_URL);
+      const q = new URLSearchParams(location.search);
+      for(const [k,v] of q.entries()) url.searchParams.set(k,v);
+
+      const res = await fetch(url.toString(), {cache:"no-store"});
+      const data = await res.json();
+      const v = data.verse || {};
+
+      const verse = readKey(v,"Verse");
+      const ref   = readKey(v,"Reference");
+      const img   = readKey(v,"ImageURL");
+
+      $("verse").textContent = verse || "말씀이 없습니다.";
+      $("ref").textContent   = ref || "-";
+      if (img){ $("img").src = img; $("img").style.display = "block"; }
+    }catch(e){
+      $("verse").textContent = "불러오기 실패";
+      console.error(e);
+    }
+  }
+
+  // 저장(브라우저 로컬)
+  function saveVerse(){
+    const item = {
+      verse: $("verse").textContent,
+      ref: $("ref").textContent
+    };
+    const list = JSON.parse(localStorage.getItem("my_verses")||"[]");
+    list.unshift(item);
+    localStorage.setItem("my_verses", JSON.stringify(list.slice(0,50)));
+    renderSaved();
+  }
+
+  function renderSaved(){
+    const list = JSON.parse(localStorage.getItem("my_verses")||"[]");
+    const ul = $("saved");
+    ul.innerHTML = "";
+    list.forEach(x=>{
+      const li = document.createElement("li");
+      li.textContent = `- ${x.verse} (${x.ref})`;
+      ul.appendChild(li);
+    });
+    $("saved-wrap").style.display = list.length ? "block" : "none";
+  }
+
+  $("btn-random").onclick = ()=>loadVerse();
+  $("btn-save").onclick = ()=>saveVerse();
+
+  renderSaved();
+  loadVerse();
+</script>
+</body>
+</html>
