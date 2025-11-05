@@ -247,28 +247,34 @@
     a.click();
     URL.revokeObjectURL(a.href);
   }
-  function renderSaved(){
-    const list = getSaved();
-    const ul = $("savedList");
-    ul.innerHTML = "";
-    $("emptySaved").style.display = list.length ? "none":"block";
-    list.forEach((x,idx)=>{
-      const li = document.createElement("li");
-      const line = document.createElement("div");
-      line.className = "saved-row";
-      const text = document.createElement("div");
-      text.textContent = `- ${x.verse} (${x.ref})`;
-      const xbtn = document.createElement("button");
-      xbtn.className = "btnX";
-      xbtn.textContent = "X";
-      xbtn.title = "삭제";
-      xbtn.onclick = ()=>deleteSaved(idx);
-      line.appendChild(text);
-      line.appendChild(xbtn);
-      li.appendChild(line);
-      ul.appendChild(li);
-    });
-  }
+ function renderSaved() {
+  const l = getSaved();
+  const ul = $("savedList");
+  ul.innerHTML = "";
+  $("emptySaved").style.display = l.length ? "none" : "block";
+
+  l.forEach((x, idx) => {
+    const li = document.createElement("li");
+    const row = document.createElement("div");
+    row.className = "saved-row";
+
+    const txt = document.createElement("div");
+    const dateStr = x.ts ? ` · ${formatTs(x.ts)}` : "";
+    txt.textContent = `- ${x.verse} (${x.ref})${dateStr}`;
+
+    const xbtn = document.createElement("button");
+    xbtn.className = "btnX";
+    xbtn.textContent = "X";
+    xbtn.title = "삭제";
+    xbtn.onclick = () => deleteSaved(idx);
+
+    row.appendChild(txt);
+    row.appendChild(xbtn);
+    li.appendChild(row);
+    ul.appendChild(li);
+  });
+}
+
 
   /* ====== 6) 공유 탭 ====== */
   function buildShareURL(id){
