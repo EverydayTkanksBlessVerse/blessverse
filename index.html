@@ -256,24 +256,20 @@
   l.forEach((x, idx) => {
     const li = document.createElement("li");
     const row = document.createElement("div");
-    row.className = "saved-row";
+    row.className = "row";
 
-    const txt = document.createElement("div");
-    const dateStr = x.ts ? ` · ${formatTs(x.ts)}` : "";
-    txt.textContent = `- ${x.verse} (${x.ref})${dateStr}`;
+    const date = x.ts ? formatTs(x.ts) : ""; // ✅ 날짜 표시 추가
 
-    const xbtn = document.createElement("button");
-    xbtn.className = "btnX";
-    xbtn.textContent = "X";
-    xbtn.title = "삭제";
-    xbtn.onclick = () => deleteSaved(idx);
+    row.innerHTML = `
+      <span>- ${x.verse} (${x.ref}) ${date ? `<span style="opacity:.6; font-size:13px;"> · ${date}</span>` : ""}</span>
+      <button class="btnX" onclick="deleteSaved(${idx})">X</button>
+    `;
 
-    row.appendChild(txt);
-    row.appendChild(xbtn);
     li.appendChild(row);
     ul.appendChild(li);
   });
 }
+
 
 
   /* ====== 6) 공유 탭 ====== */
