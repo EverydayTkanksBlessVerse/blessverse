@@ -1,3 +1,19 @@
+function formatTs(ms){
+  const d = new Date(ms);
+  const yyyy = d.getFullYear();
+  const MM = String(d.getMonth()+1).padStart(2,"0");
+  const dd = String(d.getDate()).padStart(2,"0");
+  const hh = String(d.getHours()).padStart(2,"0");
+  const mm = String(d.getMinutes()).padStart(2,"0");
+  return `${yyyy}-${MM}-${dd} ${hh}:${mm}`;
+}
+
+
+function formatTs(ms){
+  const d = new Date(ms);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+
 <!doctype html>
 <html lang="ko">
 <head>
@@ -211,22 +227,29 @@
   function getSaved(){ try{return JSON.parse(localStorage.getItem(KEY)||"[]")}catch{ return [] } }
   function setSaved(list){ localStorage.setItem(KEY, JSON.stringify(list.slice(0,200))) }
 
-  function saveVerse(){
-    const id = new URLSearchParams(location.search).get("id") || null;
-    const item = {
-      id, verse:$("verse").textContent, ref:$("ref").textContent,
-      ts: Date.now()
-    };
-    const list = getSaved();
-    // 중복 방지(같은 텍스트/레퍼런스)
-    if(!list.some(x=>x.verse===item.verse && x.ref===item.ref)){
-      list.unshift(item);
-      setSaved(list);
-      alert("저장되었습니다.");
-    }else{
-      alert("이미 저장된 말씀입니다.");
-    }
+  
+function saveVerse() {
+  const verse = $("verse").textContent.trim();
+  const ref = $("ref").textContent.trim();
+  const ts = Date.now(); // 💡 저장 시각 추가
+
+  const item = { verse, ref, ts };
+
+  let list = getSaved();
+
+  // 💡 동일한 말씀 중복 저장 방지
+  if (!list.some(x => x.verse === item.verse && x.ref === item.ref)) {
+    list.unshift(item);
+    setSaved(list);
+    alert("저장되었습니다.");
+  } else {
+    alert("이미 저장된 말씀이에요.");
   }
+
+  renderSaved();
+}
+
+  
   function deleteSaved(idx){
     const list = getSaved();
     list.splice(idx,1);
@@ -247,7 +270,9 @@
     a.click();
     URL.revokeObjectURL(a.href);
   }
- function renderSaved() {
+
+
+  function renderSaved() {
   const l = getSaved();
   const ul = $("savedList");
   ul.innerHTML = "";
@@ -255,20 +280,18 @@
 
   l.forEach((x, idx) => {
     const li = document.createElement("li");
-    const row = document.createElement("div");
-    row.className = "row";
+    const date = x.ts ? formatTs(x.ts) : "";
 
-    const date = x.ts ? formatTs(x.ts) : ""; // ✅ 날짜 표시 추가
-
-    row.innerHTML = `
-      <span>- ${x.verse} (${x.ref}) ${date ? `<span style="opacity:.6; font-size:13px;"> · ${date}</span>` : ""}</span>
-      <button class="btnX" onclick="deleteSaved(${idx})">X</button>
+    li.innerHTML = `
+      <div class="row">
+        <span>- ${x.verse} (${x.ref}) <span style="opacity:.6;font-size:13px;"> · ${date}</span></span>
+        <button class="btnX" onclick="deleteSaved(${idx})">X</button>
+      </div>
     `;
-
-    li.appendChild(row);
     ul.appendChild(li);
   });
 }
+
 
 
 
