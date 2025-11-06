@@ -1,206 +1,90 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>말씀 저장소</title>
-
-<!-- SUIT 폰트 -->
-<link href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/variable/stylesheet.css" rel="stylesheet">
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오늘의 말씀</title>
 <style>
 body {
-    margin: 0;
-    background: linear-gradient(to bottom, #ffd6e8, #cce6ff);
-    font-family: "SUIT Variable", sans-serif;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+  font-family: 'Pretendard', sans-serif;
+  margin: 0;
+  background: linear-gradient(#ffdde9, #d0e8ff);
+  text-align: center;
 }
-h1 {
-    text-align: center;
-    margin-top: 20px;
-    font-size: 22px;
-    font-weight: 700;
-    color: #333;
-}
-
 .container {
-    flex: 1;
-    padding: 20px;
-    max-width: 600px;
-    margin: auto;
+  margin-top: 50px;
+  display: inline-block;
+  padding: 30px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  width: 320px;
 }
-
-.card {
-    background: rgba(255,255,255,0.85);
-    padding: 20px;
-    border-radius: 16px;
-    text-align: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-    white-space: pre-line;
-    line-height: 1.6;
+img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 15px;
 }
-
-.card img {
-    width: 100%;
-    border-radius: 12px;
-    margin-top: 14px;
-    display: none;
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
 }
-
-.btn {
-    width: 100%;
-    padding: 14px;
-    border-radius: 10px;
-    border: none;
-    margin-top: 12px;
-    font-size: 15px;
-    cursor: pointer;
+#randomBtn { background: #ff8da1; color: white; }
+#saveBtn { background: white; border: 1px solid #aaa; }
+.footer {
+  margin-top: 35px;
+  font-size: 13px;
+  color: #666;
 }
-.btn-pink { background: #ff7d9d; color: white; }
-.btn-white { background: white; color: #333; border: 1px solid #ddd; }
-
-/* 탭바 */
-.tabbar {
-    display: flex;
-    justify-content: space-around;
-    background: white;
-    padding: 12px 0;
-    border-top: 1px solid #ddd;
-}
-.tabbar button {
-    background: none;
-    border: none;
-    font-size: 14px;
-    color: #666;
-}
-.tabbar .active { color: #ff7d9d; font-weight: 600; }
-
-/* 저장 페이지 */
-.saved-list div {
-    background: white;
-    padding: 14px;
-    border-radius: 12px;
-    margin-top: 10px;
-    display: flex;
-    justify-content: space-between;
-}
-.saved-list div span { max-width: 80%; }
-.delete-btn { color: #ff4e4e; cursor: pointer; font-weight: 700; }
 </style>
 </head>
 <body>
 
-<h1 id="page-title">오늘의 말씀</h1>
+<h1>오늘의 말씀</h1>
 
 <div class="container">
+  <img id="verseImage" src="" alt="말씀 이미지" style="display:none;">
+  <div id="verseText">로딩 중...</div>
+  <div id="verseRef" style="margin:10px 0; color:#666;"></div>
+  <div id="verseMeditation" style="margin-bottom: 10px; font-weight:600; color:#444;"></div>
 
-    <!-- 랜덤 말씀 -->
-    <div id="page-today">
-        <div class="card">
-            <div id="verse-text">불러오는 중...</div>
-            <div id="verse-ref"></div>
-            <img id="verse-img">
-        </div>
-        <button class="btn btn-pink" onclick="loadVerse()">랜덤 말씀 보기</button>
-        <button class="btn btn-white" onclick="saveVerse()">내 말씀 저장</button>
-    </div>
-
-    <!-- 저장함 -->
-    <div id="page-saved" style="display:none;">
-        <div class="saved-list" id="saved-list"></div>
-    </div>
-
-    <!-- 공유 -->
-    <div id="page-share" style="display:none;">
-        <div class="card">
-            <p>현재 말씀을 공유해보세요.</p>
-            <input id="share-link" style="width:100%; padding:8px; border-radius:8px;" readonly>
-            <button class="btn btn-pink" onclick="copyLink()">링크 복사</button>
-        </div>
-    </div>
-
+  <button id="randomBtn">랜덤 말씀 보기</button>
+  <button id="saveBtn">내 말씀 저장</button>
 </div>
 
-<!-- 하단 탭 -->
-<div class="tabbar">
-    <button id="tab-today" class="active" onclick="showPage('today')">오늘</button>
-    <button id="tab-saved" onclick="showPage('saved')">저장함</button>
-    <button id="tab-share" onclick="showPage('share')">공유</button>
+<div class="footer">
+  © BlessVerse
 </div>
 
 <script>
-// ✅ 형 웹앱 URL (이미 포함 완료)
 const API_URL = "https://script.google.com/macros/s/AKfycbziPgmZTutWnA_L1KUTfNrFdbFJnqTRBxbawMsKrOiaOjYuBa0do6D3gMOjFtjz1r_ZhA/exec";
 
-let currentVerse = {};
+async function loadRandom() {
+  const res = await fetch(API_URL);
+  const json = await res.json();
 
-async function loadVerse() {
-    const res = await fetch(API_URL);
-    const data = await res.json();
-    currentVerse = data;
+  const data = json.verse;
 
-    document.getElementById("verse-text").innerText = data.verse;
-    document.getElementById("verse-ref").innerText = data.reference;
-    
-    const img = document.getElementById("verse-img");
-    if (data.image && data.image !== "") {
-        img.src = data.image;
-        img.style.display = "block";
-    } else {
-        img.style.display = "none";
-    }
+  document.getElementById("verseText").innerText = data.Verse;
+  document.getElementById("verseRef").innerText = data.Reference;
+  document.getElementById("verseMeditation").innerText = data.Meditation;
 
-    document.getElementById("share-link").value = window.location.href + "?id=" + data.id;
+  if (data.ImageURL && data.ImageURL.trim() !== "") {
+    const img = document.getElementById("verseImage");
+    img.src = data.ImageURL;
+    img.style.display = "block";
+  }
 }
 
-function saveVerse() {
-    let list = JSON.parse(localStorage.getItem("saved") || "[]");
-    list.push(currentVerse);
-    localStorage.setItem("saved", JSON.stringify(list));
-    alert("저장 완료 ✅");
-}
+document.getElementById("randomBtn").addEventListener("click", loadRandom);
+document.getElementById("saveBtn").addEventListener("click", () => alert("저장 기능 곧 추가됩니다 😄"));
 
-function loadSaved() {
-    const list = JSON.parse(localStorage.getItem("saved") || "[]");
-    const box = document.getElementById("saved-list");
-    box.innerHTML = "";
-
-    list.forEach((v, i) => {
-        box.innerHTML += `
-        <div>
-            <span>${v.verse} - ${v.reference}</span>
-            <span class="delete-btn" onclick="del(${i})">X</span>
-        </div>`;
-    });
-}
-
-function del(i) {
-    let list = JSON.parse(localStorage.getItem("saved") || "[]");
-    list.splice(i,1);
-    localStorage.setItem("saved", JSON.stringify(list));
-    loadSaved();
-}
-
-function copyLink() {
-    navigator.clipboard.writeText(document.getElementById("share-link").value);
-    alert("✅ 링크 복사 완료!");
-}
-
-function showPage(page) {
-    document.getElementById("page-today").style.display = (page==="today")?"block":"none";
-    document.getElementById("page-saved").style.display = (page==="saved")?"block":"none";
-    document.getElementById("page-share").style.display = (page==="share")?"block":"none";
-
-    document.querySelectorAll(".tabbar button").forEach(btn=>btn.classList.remove("active"));
-    document.getElementById("tab-"+page).classList.add("active");
-
-    if (page==="saved") loadSaved();
-}
-
-// 최초 실행
-loadVerse();
+loadRandom();
 </script>
 
 </body>
