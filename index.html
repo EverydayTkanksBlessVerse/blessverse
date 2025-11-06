@@ -118,10 +118,21 @@ async function getRandomVerse() {
     const data = await res.json();
     currentVerse = data;
     verseBox.textContent = `${data.verse}\n\n- ${data.reference}`;
+
+    // ✅ 이미지 표시
+    const img = document.getElementById("verseImg");
+    if (data.image && data.image !== "") {
+      img.src = data.image;
+      img.style.display = "block";
+    } else {
+      img.style.display = "none";
+    }
+
   } catch {
     verseBox.textContent = "오류가 발생했어요 😭";
   }
 }
+
 
 document.getElementById("randomBtn").addEventListener("click", getRandomVerse);
 
