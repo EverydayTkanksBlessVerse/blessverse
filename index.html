@@ -1,29 +1,15 @@
-function formatTs(ms){
-  const d = new Date(ms);
-  const yyyy = d.getFullYear();
-  const MM = String(d.getMonth()+1).padStart(2,"0");
-  const dd = String(d.getDate()).padStart(2,"0");
-  const hh = String(d.getHours()).padStart(2,"0");
-  const mm = String(d.getMinutes()).padStart(2,"0");
-  return `${yyyy}-${MM}-${dd} ${hh}:${mm}`;
-}
-
-
-function formatTs(ms){
-  const d = new Date(ms);
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
-}
-
 <!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>BlessVerse</title>
-  <!-- 캐시 무력화(새 코드 바로 반영) -->
+
+  <!-- 캐시 무력화 -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
+
   <style>
     :root{
       --bg1:#0e2a32; --bg2:#224c5d; --card:rgba(255,255,255,.08);
@@ -37,41 +23,31 @@ function formatTs(ms){
       display:flex; flex-direction:column; align-items:center;
     }
     h1{margin:28px 0 14px; font-size:44px}
-    .nav{
-      display:flex; gap:10px; margin:8px 0 24px;
-    }
+    .nav{display:flex; gap:10px; margin:8px 0 24px;}
     .tab{
       background:var(--card); border:1px solid rgba(255,255,255,.15);
       color:var(--text); padding:10px 16px; border-radius:12px; cursor:pointer;
     }
     .tab.active{background:var(--btn); color:var(--btnTxt); font-weight:700}
     .container{width:min(960px,92%);}
-
     .card{
       background:var(--card); border-radius:14px; padding:16px 18px;
       box-shadow:0 8px 26px rgba(0,0,0,.25); margin:12px 0;
       border:1px solid rgba(255,255,255,.08);
     }
     .muted{color:var(--muted)}
-    .btn{
-      background:var(--btn); color:var(--btnTxt); border:0; cursor:pointer;
-      border-radius:12px; padding:10px 16px; font-weight:700; margin:6px 6px 6px 0;
-    }
+    .btn{background:var(--btn); color:var(--btnTxt); border:0; cursor:pointer;
+      border-radius:12px; padding:10px 16px; font-weight:700; margin:6px 6px 6px 0;}
     .btn.secondary{background:var(--card); color:var(--text); border:1px solid rgba(255,255,255,.18)}
     .btn.danger{background:var(--danger); color:#fff}
     img#img{width:100%; border-radius:12px; display:none; margin-top:10px}
-
-    ul#savedList{padding-left:22px; line-height:1.8; margin:8px 0 0}
-    .saved-row{display:flex; align-items:center; gap:10px}
-    .btnX{
-      background:transparent; border:1px solid rgba(255,255,255,.25);
-      color:#fff; padding:2px 8px; border-radius:8px; cursor:pointer; font-size:12px;
-    }
-    .btnX:hover{background:rgba(255,255,255,.12)}
-    .row-actions{display:flex; gap:6px}
-
     .hidden{display:none}
-    input[type=text], input[type=url]{width:100%; padding:10px 12px; border-radius:10px;
+    ul#savedList{padding-left:22px; line-height:1.8; margin:8px 0 0}
+    .saved-row{display:flex; align-items:center; justify-content:space-between; gap:10px}
+    .btnX{background:transparent; border:1px solid rgba(255,255,255,.25);
+      color:#fff; padding:2px 8px; border-radius:8px; cursor:pointer; font-size:12px;}
+    .btnX:hover{background:rgba(255,255,255,.12)}
+    input[type=url]{width:100%; padding:10px 12px; border-radius:10px;
       border:1px solid rgba(255,255,255,.2); background:rgba(0,0,0,.2); color:#fff}
     .mt8{margin-top:8px} .mt12{margin-top:12px}
   </style>
@@ -128,151 +104,154 @@ function formatTs(ms){
       </div>
       <div class="card">
         <b>설명</b>
-        <div class="mt8 muted">※ 저장함에서 각 항목 우측 <b>X</b> 버튼으로 개별 삭제가 가능합니다.</div>
+        <div class="mt8 muted">※ 저장함에서 각 항목 우측 <b>X</b> 버튼으로 개별 삭제 가능.</div>
       </div>
     </section>
   </div>
 
 <script>
-  /* ====== 1) 설정값 ====== */
-  // ⛳️ Apps Script 웹앱( /exec ) 주소로 교체하세요.
-  const API_URL = "https://script.google.com/macros/s/AKfycbziPgmZTutWnA_L1KUTfNrFdbFJnqTRBxbawMsKrOiaOjYuBa0do6D3gMOjFtjz1r_ZhA/exec";
-  // 본인 사이트 루트 (뒤 슬래시 포함 유지). 예: "https://everydaytkanksblessverse.github.io/blessverse/"
-  const SITE_URL = location.origin + location.pathname.replace(/index\.html$/,'');
+/* =====================[ 1) 설정 ]===================== */
+/* Apps Script 웹앱 /exec 주소로 바꾸세요 */
+const API_URL = "https://script.google.com/macros/s/AKfycbziPgmZTutWnA_L1KUTfNrFdbFJnqTRBxbawMsKrOiaOjYuBa0do6D3gMOjFtjz1r_ZhA/exec";
 
-  /* ====== 2) 도우미 ====== */
-  const $ = (id)=>document.getElementById(id);
-  const readKey = (o,k)=> o?.[k] ?? o?.[k+" "] ?? o?.[k?.trim?.()] ?? "";
-  const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+/* 사이트 루트 (링크 생성용) */
+const SITE_URL = location.origin + location.pathname.replace(/index\.html$/,'');
 
-  /* ====== 3) 페이지 라우팅 ====== */
-  const pages = {
-    today: $("page-today"),
-    saved: $("page-saved"),
-    share: $("page-share"),
-  };
-  function navigate(page){
-    Object.keys(pages).forEach(p=>{
-      pages[p].classList.toggle("hidden", p!==page);
-      // 탭 표시
-      [...document.querySelectorAll(".tab")].forEach(t=>{
-        t.classList.toggle("active", t.dataset.page===page);
-      });
-    });
-    if(page==="saved") renderSaved();
-    if(page==="share") refreshShareLink();
-  }
-  document.getElementById("nav").addEventListener("click", (e)=>{
-    if(e.target.classList.contains("tab")){
-      navigate(e.target.dataset.page);
-      // URL 해시로 섹션 기억(선택)
-      history.replaceState(null, "", "#"+e.target.dataset.page);
-    }
+/* =====================[ 2) 유틸 ]===================== */
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+function formatTs(ms){
+  const d = new Date(ms);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+/* 시트 헤더 오타/공백 안전하게 읽기 */
+function readKey(o,k){
+  if(!o) return "";
+  const keys = Object.keys(o);
+  const target = keys.find(kk => kk.trim().toLowerCase() === k.trim().toLowerCase());
+  return target ? o[target] : "";
+}
+
+/* =====================[ 3) 라우팅 ]===================== */
+const pages = { today:$("page-today"), saved:$("page-saved"), share:$("page-share") };
+function navigate(page){
+  Object.keys(pages).forEach(p=>{
+    pages[p].classList.toggle("hidden", p!==page);
+    document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t.dataset.page===page));
   });
+  if(page==="saved") renderSaved();
+  if(page==="share") refreshShareLink();
+}
+$("nav").addEventListener("click", e=>{
+  if(e.target.classList.contains("tab")){
+    navigate(e.target.dataset.page);
+    history.replaceState(null,"","#"+e.target.dataset.page);
+  }
+});
 
-  /* ====== 4) 말씀 불러오기 (타임아웃+1회 재시도) ====== */
-  async function loadVerse(){
+/* =====================[ 4) 말씀 불러오기 ]===================== */
+async function loadVerse(){
+  try{
+    $("verse").textContent = "말씀을 불러오는 중...";
+    $("ref").textContent = "-";
+    $("img").style.display = "none";
+
+    const u = new URL(API_URL);
+    const q = new URLSearchParams(location.search); // ?id=전달
+    q.forEach((v,k)=>u.searchParams.set(k,v));
+    u.searchParams.set("_t", Date.now()); // 캐시 우회
+
+    // 5초 타임아웃
+    const controller = new AbortController();
+    const timer = setTimeout(()=>controller.abort(), 5000);
+    const res = await fetch(u, {signal:controller.signal, cache:"no-store"});
+    clearTimeout(timer);
+
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    const v = data?.verse || {};
+
+    const verse = readKey(v, "Verse");
+    const ref   = readKey(v, "Reference");
+    const img   = readKey(v, "ImageURL");
+    const id    = readKey(v, "ID");
+
+    $("verse").textContent = verse || "말씀이 없습니다.";
+    $("ref").textContent   = ref   || "-";
+    if(img){ $("img").src = img; $("img").style.display = "block"; }
+    refreshShareLink(id);
+
+  }catch(e){
+    console.warn("1차 실패:", e.message);
+    $("verse").textContent = "불러오기 실패… 재시도 중";
+    await sleep(1200);
     try{
-      $("verse").textContent = "말씀을 불러오는 중...";
-      $("ref").textContent = "-";
-      $("img").style.display = "none";
-
-      const controller = new AbortController();
-      const timeout = setTimeout(()=>controller.abort(), 5000);
-      // 주소창의 ?id 등 파라미터를 API에 그대로 전달
-      const u = new URL(API_URL);
-      const q = new URLSearchParams(location.search);
-      for(const [k,v] of q.entries()) u.searchParams.set(k,v);
-      // 캐시 우회
-      u.searchParams.set("_t", Date.now());
-
-      const res = await fetch(u.toString(), {cache:"no-store", signal:controller.signal});
-      clearTimeout(timeout);
-      if(!res.ok) throw new Error("HTTP "+res.status);
-
-      const data = await res.json();
-      const v = data?.verse || {};
-      const verse = readKey(v,"Verse");
-      const ref   = readKey(v,"Reference");
-      const img   = readKey(v,"ImageURL");
-
-      $("verse").textContent = verse || "말씀이 없습니다.";
-      $("ref").textContent   = ref || "-";
+      const res2 = await fetch(API_URL+"?_t="+Date.now(), {cache:"no-store"});
+      const data2 = await res2.json();
+      const v = data2?.verse || {};
+      $("verse").textContent = readKey(v,"Verse") || "말씀이 없습니다.";
+      $("ref").textContent   = readKey(v,"Reference") || "-";
+      const img = readKey(v,"ImageURL");
       if(img){ $("img").src = img; $("img").style.display = "block"; }
-      // 공유 탭 링크 자동 갱신
-      refreshShareLink(v?.ID);
-
-    }catch(err){
-      console.warn("불러오기 실패:", err.message, "1.5초 뒤 재시도");
-      $("verse").textContent = "불러오기 실패… 재시도 중";
-      await sleep(1500);
-      // 1회 재시도
-      try{
-        const res = await fetch(API_URL + "?_t=" + Date.now(), {cache:"no-store"});
-        const data = await res.json();
-        const v = data?.verse || {};
-        $("verse").textContent = readKey(v,"Verse") || "말씀이 없습니다.";
-        $("ref").textContent   = readKey(v,"Reference") || "-";
-        const img = readKey(v,"ImageURL");
-        if(img){ $("img").src = img; $("img").style.display = "block"; }
-        refreshShareLink(v?.ID);
-      }catch(e){
-        $("verse").textContent = "불러오기 실패(네트워크/서버).";
-      }
+      refreshShareLink(readKey(v,"ID"));
+    }catch{
+      $("verse").textContent = "불러오기 실패(네트워크/서버).";
+      $("ref").textContent = "-";
     }
   }
+}
 
-  /* ====== 5) 저장/삭제/목록 ====== */
-  const KEY = "my_verses";
-  function getSaved(){ try{return JSON.parse(localStorage.getItem(KEY)||"[]")}catch{ return [] } }
-  function setSaved(list){ localStorage.setItem(KEY, JSON.stringify(list.slice(0,200))) }
+/* =====================[ 5) 저장/삭제/목록 ]===================== */
+const KEY = "bless_saved_v1"; // (구조 변경 시 키도 같이 바꿔 충돌 방지)
+function getSaved(){ try{return JSON.parse(localStorage.getItem(KEY)||"[]")}catch{return[]} }
+function setSaved(list){ localStorage.setItem(KEY, JSON.stringify(list.slice(0,200))); }
 
-  
-function saveVerse() {
+function saveVerse(){
   const verse = $("verse").textContent.trim();
-  const ref = $("ref").textContent.trim();
-  const ts = Date.now(); // 💡 저장 시각 추가
+  const ref   = $("ref").textContent.trim();
+  if(!verse || verse === "말씀을 불러오는 중..." || verse.startsWith("불러오기 실패")) {
+    alert("말씀을 먼저 불러온 뒤 저장해 주세요.");
+    return;
+  }
+  const item = { verse, ref, ts: Date.now() };
+  const list = getSaved();
 
-  const item = { verse, ref, ts };
-
-  let list = getSaved();
-
-  // 💡 동일한 말씀 중복 저장 방지
-  if (!list.some(x => x.verse === item.verse && x.ref === item.ref)) {
+  // 동일 텍스트/레퍼런스 중복 방지
+  if(!list.some(x=>x.verse===item.verse && x.ref===item.ref)){
     list.unshift(item);
     setSaved(list);
     alert("저장되었습니다.");
-  } else {
-    alert("이미 저장된 말씀이에요.");
+  }else{
+    alert("이미 저장된 말씀입니다.");
   }
-
   renderSaved();
 }
 
-  
-  function deleteSaved(idx){
-    const list = getSaved();
-    list.splice(idx,1);
-    setSaved(list);
+function deleteSaved(idx){
+  const list = getSaved();
+  list.splice(idx,1);
+  setSaved(list);
+  renderSaved();
+}
+function clearSaved(){
+  if(confirm("저장한 말씀을 모두 삭제할까요?")){
+    setSaved([]);
     renderSaved();
   }
-  function clearSaved(){
-    if(confirm("저장한 말씀을 모두 삭제할까요?")){ setSaved([]); renderSaved(); }
-  }
-  function exportSaved(){
-    const list = getSaved();
-    if(!list.length){ alert("내보낼 항목이 없습니다."); return; }
-    const lines = list.map(x=>`- ${x.verse} (${x.ref})`);
-    const blob = new Blob([lines.join("\n")], {type:"text/plain;charset=utf-8"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "blessverse_saved.txt";
-    a.click();
-    URL.revokeObjectURL(a.href);
-  }
+}
+function exportSaved(){
+  const list = getSaved();
+  if(!list.length){ alert("내보낼 항목이 없습니다."); return; }
+  const lines = list.map(x=>`- ${x.verse} (${x.ref}) · ${formatTs(x.ts||Date.now())}`);
+  const blob = new Blob([lines.join("\n")], {type:"text/plain;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "blessverse_saved.txt";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 
-
-  function renderSaved() {
+function renderSaved(){
   const l = getSaved();
   const ul = $("savedList");
   ul.innerHTML = "";
@@ -281,9 +260,8 @@ function saveVerse() {
   l.forEach((x, idx) => {
     const li = document.createElement("li");
     const date = x.ts ? formatTs(x.ts) : "";
-
     li.innerHTML = `
-      <div class="row">
+      <div class="saved-row">
         <span>- ${x.verse} (${x.ref}) <span style="opacity:.6;font-size:13px;"> · ${date}</span></span>
         <button class="btnX" onclick="deleteSaved(${idx})">X</button>
       </div>
@@ -292,60 +270,53 @@ function saveVerse() {
   });
 }
 
-
-
-
-  /* ====== 6) 공유 탭 ====== */
-  function buildShareURL(id){
-    // id가 있으면 ?id= 로 고정 링크 생성. 없으면 현재 페이지 기준.
-    const url = new URL(SITE_URL, location.href);
-    if(id) url.searchParams.set("id", id);
-    return url.toString();
+/* =====================[ 6) 공유 ]===================== */
+function buildShareURL(id){
+  const url = new URL(SITE_URL, location.href);
+  if(id) url.searchParams.set("id", id);
+  return url.toString();
+}
+function refreshShareLink(idFromAPI){
+  const currentId = idFromAPI || new URLSearchParams(location.search).get("id");
+  $("shareLink").value = buildShareURL(currentId);
+}
+async function copyShare(){
+  try{
+    await navigator.clipboard.writeText($("shareLink").value);
+    alert("링크가 복사되었습니다.");
+  }catch{
+    $("shareLink").select(); document.execCommand("copy");
+    alert("링크가 복사되었습니다.(호환 모드)");
   }
-  function refreshShareLink(idFromAPI){
-    const currentId = idFromAPI || new URLSearchParams(location.search).get("id");
-    $("shareLink").value = buildShareURL(currentId);
+}
+async function nativeShare(){
+  const shareData = {
+    title: "오늘의 말씀",
+    text: `${$("verse").textContent} — ${$("ref").textContent}`,
+    url: $("shareLink").value
+  };
+  if(navigator.share){
+    try{ await navigator.share(shareData); }
+    catch(e){ if(e.name!=="AbortError") alert("공유 실패: "+e.message); }
+  }else{
+    copyShare();
   }
-  async function copyShare(){
-    try{
-      await navigator.clipboard.writeText($("shareLink").value);
-      alert("링크가 복사되었습니다.");
-    }catch{
-      // input 선택 후 수동 복사 fallback
-      $("shareLink").select(); document.execCommand("copy");
-      alert("링크가 복사되었습니다.(호환 모드)");
-    }
-  }
-  async function nativeShare(){
-    const title = "오늘의 말씀";
-    const text  = `${$("verse").textContent} — ${$("ref").textContent}`;
-    const url   = $("shareLink").value;
-    if(navigator.share){
-      try{ await navigator.share({title, text, url}); }
-      catch(e){ if(e.name!=="AbortError") alert("공유 실패: "+e.message); }
-    }else{
-      copyShare();
-    }
-  }
+}
 
-  /* ====== 7) 이벤트 바인딩 & 초기화 ====== */
-  $("btn-random").onclick = ()=>loadVerse();
-  $("btn-save").onclick   = ()=>saveVerse();
+/* =====================[ 7) 이벤트 & 초기화 ]===================== */
+$("btn-random").onclick = loadVerse;
+$("btn-save").onclick   = saveVerse;
+$("btn-clear").onclick  = clearSaved;
+$("btn-export").onclick = exportSaved;
+$("btn-copy").onclick   = copyShare;
+$("btn-native-share").onclick = nativeShare;
 
-  $("btn-clear").onclick  = ()=>clearSaved();
-  $("btn-export").onclick = ()=>exportSaved();
+// 해시 라우팅
+const hash = (location.hash||"").replace("#","");
+if(["saved","share"].includes(hash)) navigate(hash); else navigate("today");
 
-  $("btn-copy").onclick   = ()=>copyShare();
-  $("btn-native-share").onclick = ()=>nativeShare();
-
-  // 해시로 진입 시 해당 탭 오픈
-  const hash = (location.hash||"").replace("#","");
-  if(["saved","share"].includes(hash)) navigate(hash); else navigate("today");
-
-  renderSaved();  // 저장함 미리 그림
-  loadVerse();    // 첫 구절 로드
+renderSaved();
+loadVerse();
 </script>
 </body>
 </html>
-
-
