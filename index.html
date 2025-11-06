@@ -67,8 +67,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbziPgmZTutWnA_L1KUTfNrF
 async function loadRandom() {
   const res = await fetch(API_URL);
   const json = await res.json();
-
-  const data = json.verse;
+  const data = json.verse; // ✅ 핵심 수정
 
   document.getElementById("verseText").innerText = data.Verse;
   document.getElementById("verseRef").innerText = data.Reference;
