@@ -5,182 +5,203 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>말씀 저장소</title>
 
-<!-- ✅ SUIT 폰트 -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/static/woff2/SUIT.css">
+<!-- SUIT 폰트 -->
+<link href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/variable/stylesheet.css" rel="stylesheet">
 
 <style>
-  body {
+body {
     margin: 0;
-    font-family: 'SUIT', sans-serif;
-    background: linear-gradient(to bottom, #ffd6e8, #cfe7ff);
+    background: linear-gradient(to bottom, #ffd6e8, #cce6ff);
+    font-family: "SUIT Variable", sans-serif;
     display: flex;
     flex-direction: column;
     height: 100vh;
-  }
+}
+h1 {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #333;
+}
 
-  #app {
+.container {
     flex: 1;
     padding: 20px;
-    text-align: center;
-  }
+    max-width: 600px;
+    margin: auto;
+}
 
-  .verse-box {
-    background: white;
-    padding: 24px;
+.card {
+    background: rgba(255,255,255,0.85);
+    padding: 20px;
     border-radius: 16px;
-    box-shadow: 0px 8px 20px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
     white-space: pre-line;
-    font-size: 18px;
-    line-height: 1.5;
-  }
+    line-height: 1.6;
+}
 
-  button {
-    width: 80%;
+.card img {
+    width: 100%;
+    border-radius: 12px;
+    margin-top: 14px;
+    display: none;
+}
+
+.btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    margin-top: 12px;
+    font-size: 15px;
+    cursor: pointer;
+}
+.btn-pink { background: #ff7d9d; color: white; }
+.btn-white { background: white; color: #333; border: 1px solid #ddd; }
+
+/* 탭바 */
+.tabbar {
+    display: flex;
+    justify-content: space-around;
+    background: white;
+    padding: 12px 0;
+    border-top: 1px solid #ddd;
+}
+.tabbar button {
+    background: none;
+    border: none;
+    font-size: 14px;
+    color: #666;
+}
+.tabbar .active { color: #ff7d9d; font-weight: 600; }
+
+/* 저장 페이지 */
+.saved-list div {
+    background: white;
     padding: 14px;
     border-radius: 12px;
-    border: none;
-    font-size: 16px;
-    cursor: pointer;
     margin-top: 10px;
-    font-weight: 500;
-  }
-
-  #randomBtn {
-    background: #ff8fab;
-    color: white;
-  }
-
-  #saveBtn {
-    background: white;
-    border: 2px solid #ddd;
-  }
-
-  /* ✅ 하단 네비게이션  */
-  nav {
     display: flex;
-    border-top: 1px solid #ddd;
-    background: white;
-  }
-  nav div {
-    flex: 1;
-    padding: 10px 0;
-    text-align: center;
-    font-size: 14px;
-    cursor: pointer;
-  }
-
-  nav div.active {
-    color: #ff5d8f;
-    font-weight: 600;
-  }
+    justify-content: space-between;
+}
+.saved-list div span { max-width: 80%; }
+.delete-btn { color: #ff4e4e; cursor: pointer; font-weight: 700; }
 </style>
-
 </head>
 <body>
 
-<div id="app">
-  <div id="todayPage">
-    <div id="verseBox" class="verse-box">말씀을 불러오고 있어요...</div>
-    <button id="randomBtn">랜덤 말씀 보기</button>
-    <button id="saveBtn">내 말씀 저장</button>
-  </div>
+<h1 id="page-title">오늘의 말씀</h1>
 
-  <div id="savedPage" style="display:none;">
-    <h3>내가 저장한 말씀</h3>
-    <div id="savedList" style="margin-top:20px; text-align:left;"></div>
-  </div>
+<div class="container">
 
-  <div id="sharePage" style="display:none;">
-    <h3>공유 링크</h3>
-    <input id="shareLink" style="width:90%; padding:10px; border-radius:8px; border:1px solid #ccc;" readonly>
-  </div>
+    <!-- 랜덤 말씀 -->
+    <div id="page-today">
+        <div class="card">
+            <div id="verse-text">불러오는 중...</div>
+            <div id="verse-ref"></div>
+            <img id="verse-img">
+        </div>
+        <button class="btn btn-pink" onclick="loadVerse()">랜덤 말씀 보기</button>
+        <button class="btn btn-white" onclick="saveVerse()">내 말씀 저장</button>
+    </div>
+
+    <!-- 저장함 -->
+    <div id="page-saved" style="display:none;">
+        <div class="saved-list" id="saved-list"></div>
+    </div>
+
+    <!-- 공유 -->
+    <div id="page-share" style="display:none;">
+        <div class="card">
+            <p>현재 말씀을 공유해보세요.</p>
+            <input id="share-link" style="width:100%; padding:8px; border-radius:8px;" readonly>
+            <button class="btn btn-pink" onclick="copyLink()">링크 복사</button>
+        </div>
+    </div>
+
 </div>
 
-<!-- ✅ 하단 네비 -->
-<nav>
-  <div id="navToday" class="active">오늘</div>
-  <div id="navSaved">저장함</div>
-  <div id="navShare">공유</div>
-</nav>
+<!-- 하단 탭 -->
+<div class="tabbar">
+    <button id="tab-today" class="active" onclick="showPage('today')">오늘</button>
+    <button id="tab-saved" onclick="showPage('saved')">저장함</button>
+    <button id="tab-share" onclick="showPage('share')">공유</button>
+</div>
 
 <script>
+// ✅ 형 웹앱 URL (이미 포함 완료)
 const API_URL = "https://script.google.com/macros/s/AKfycbziPgmZTutWnA_L1KUTfNrFdbFJnqTRBxbawMsKrOiaOjYuBa0do6D3gMOjFtjz1r_ZhA/exec";
 
-const verseBox = document.getElementById("verseBox");
-const shareLink = document.getElementById("shareLink");
-let currentVerse = null;
+let currentVerse = {};
 
-async function getRandomVerse() {
-  verseBox.textContent = "말씀 불러오는 중...";
-  try {
+async function loadVerse() {
     const res = await fetch(API_URL);
     const data = await res.json();
     currentVerse = data;
-    verseBox.textContent = `${data.verse}\n\n- ${data.reference}`;
 
-    // ✅ 이미지 표시
-    const img = document.getElementById("verseImg");
+    document.getElementById("verse-text").innerText = data.verse;
+    document.getElementById("verse-ref").innerText = data.reference;
+    
+    const img = document.getElementById("verse-img");
     if (data.image && data.image !== "") {
-      img.src = data.image;
-      img.style.display = "block";
+        img.src = data.image;
+        img.style.display = "block";
     } else {
-      img.style.display = "none";
+        img.style.display = "none";
     }
 
-  } catch {
-    verseBox.textContent = "오류가 발생했어요 😭";
-  }
+    document.getElementById("share-link").value = window.location.href + "?id=" + data.id;
 }
 
-
-document.getElementById("randomBtn").addEventListener("click", getRandomVerse);
-
-document.getElementById("saveBtn").addEventListener("click", () => {
-  if (!currentVerse) return alert("말씀이 아직 불러와지지 않았어요!");
-
-  const saved = JSON.parse(localStorage.getItem("savedVerses") || "[]");
-  saved.push(currentVerse);
-  localStorage.setItem("savedVerses", JSON.stringify(saved));
-  alert("✅ 저장되었습니다!");
-});
-
-function showSaved() {
-  const list = JSON.parse(localStorage.getItem("savedVerses") || "[]");
-  const container = document.getElementById("savedList");
-
-  if (list.length === 0) {
-    container.innerHTML = "<p style='text-align:center;'>아직 저장된 말씀이 없습니다 🙏</p>";
-    return;
-  }
-
-  container.innerHTML = list.map(v =>
-    `<div style="padding:12px; background:white; margin-bottom:10px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-      ${v.verse}<br><br><strong>- ${v.reference}</strong>
-    </div>`
-  ).join("");
+function saveVerse() {
+    let list = JSON.parse(localStorage.getItem("saved") || "[]");
+    list.push(currentVerse);
+    localStorage.setItem("saved", JSON.stringify(list));
+    alert("저장 완료 ✅");
 }
 
-document.getElementById("navToday").onclick = () => switchPage("today");
-document.getElementById("navSaved").onclick = () => {
-  switchPage("saved");
-  showSaved();
-};
-document.getElementById("navShare").onclick = () => {
-  switchPage("share");
-  shareLink.value = window.location.href;
-};
+function loadSaved() {
+    const list = JSON.parse(localStorage.getItem("saved") || "[]");
+    const box = document.getElementById("saved-list");
+    box.innerHTML = "";
 
-function switchPage(page) {
-  document.getElementById("todayPage").style.display = page==="today" ? "block" : "none";
-  document.getElementById("savedPage").style.display = page==="saved" ? "block" : "none";
-  document.getElementById("sharePage").style.display = page==="share" ? "block" : "none";
-
-  document.querySelectorAll("nav div").forEach(n => n.classList.remove("active"));
-  document.getElementById("nav" + page.charAt(0).toUpperCase() + page.slice(1)).classList.add("active");
+    list.forEach((v, i) => {
+        box.innerHTML += `
+        <div>
+            <span>${v.verse} - ${v.reference}</span>
+            <span class="delete-btn" onclick="del(${i})">X</span>
+        </div>`;
+    });
 }
 
-getRandomVerse();
+function del(i) {
+    let list = JSON.parse(localStorage.getItem("saved") || "[]");
+    list.splice(i,1);
+    localStorage.setItem("saved", JSON.stringify(list));
+    loadSaved();
+}
+
+function copyLink() {
+    navigator.clipboard.writeText(document.getElementById("share-link").value);
+    alert("✅ 링크 복사 완료!");
+}
+
+function showPage(page) {
+    document.getElementById("page-today").style.display = (page==="today")?"block":"none";
+    document.getElementById("page-saved").style.display = (page==="saved")?"block":"none";
+    document.getElementById("page-share").style.display = (page==="share")?"block":"none";
+
+    document.querySelectorAll(".tabbar button").forEach(btn=>btn.classList.remove("active"));
+    document.getElementById("tab-"+page).classList.add("active");
+
+    if (page==="saved") loadSaved();
+}
+
+// 최초 실행
+loadVerse();
 </script>
+
 </body>
 </html>
