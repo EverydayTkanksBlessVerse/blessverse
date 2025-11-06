@@ -1,308 +1,77 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>오늘의 말씀</title>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --pink:#ff8da1;
-    --pink-2:#ff9fb1;
-    --card:#ffffff;
-    --text:#222;
-    --muted:#6b7280;
-    --border:#e5e7eb;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%;}
-  body{
-    margin:0;
-    font-family:Pretendard,system-ui,apple-system,Segoe UI,Roboto,sans-serif;
-    color:var(--text);
-    background:linear-gradient(#ffd6e1,#cfe7ff);
-    display:flex;flex-direction:column;align-items:center;
-  }
-  header{padding:22px 16px 8px; font-weight:800; font-size:28px;}
-  main{width:100%;max-width:980px; flex:1; display:flex; align-items:flex-start; justify-content:center; padding:16px;}
-  .screen{display:none; width:100%; max-width:420px;}
-  .screen.active{display:block;}
-  .card{
-    background:var(--card);
-    border-radius:16px;
-    box-shadow:0 10px 30px rgba(0,0,0,.12);
-    padding:20px;
-    width:100%;
-  }
-  .verse-img{width:100%; border-radius:12px; display:none; margin-bottom:14px;}
-  .verse-text{font-size:18px; line-height:1.6; white-space:pre-wrap; text-align:center;}
-  .verse-ref{margin-top:10px; color:var(--muted); text-align:center;}
-  .verse-memo{margin-top:10px; font-weight:700; text-align:center;}
-  .btn{width:100%; padding:13px 14px; border-radius:10px; border:1px solid var(--border); background:#fff; cursor:pointer; font-weight:600;}
-  .btn-primary{background:var(--pink); color:#fff; border:none;}
-  .btn-danger{background:#ffe2e6; color:#b4232d; border:1px solid #ffc2cc;}
-  .btn + .btn{margin-top:10px;}
-  .help{font-size:12px; color:var(--muted); text-align:center; margin-top:16px;}
-  .tabs{
-    width:100%; max-width:420px;
-    display:grid; grid-template-columns:repeat(3,1fr);
-    border-top:1px solid rgba(255,255,255,.5);
-    background:rgba(255,255,255,.25);
-    backdrop-filter: blur(6px);
-  }
-  .tab{padding:12px 8px; text-align:center; cursor:pointer; font-weight:600; color:#374151;}
-  .tab.active{color:var(--pink); border-top:2px solid var(--pink); background:rgba(255,255,255,.35);}
-  .list{display:flex;flex-direction:column; gap:10px;}
-  .item{
-    border:1px solid var(--border); border-radius:12px; padding:12px;
-    background:#fff;
-  }
-  .item-top{display:flex; gap:10px; align-items:flex-start;}
-  .item-img{width:70px;height:70px;object-fit:cover;border-radius:10px;flex-shrink:0;}
-  .item-verse{font-size:14px; line-height:1.5;}
-  .item-ref{font-size:12px; color:var(--muted); margin-top:6px;}
-  .item-actions{display:flex; gap:8px; margin-top:8px;}
-  footer{padding:16px; font-size:12px; color:#5b6470;}
-</style>
+  <meta charset="UTF-8">
+  <title>오늘의 말씀</title>
+  <link href="https://cdn.jsdelivr.net/npm/suitcss@0.0.0/fonts/SUIT-Variable.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>오늘의 말씀</header>
+  <h1>오늘의 말씀</h1>
 
-<main>
-  <!-- 오늘 -->
-  <section id="screen-today" class="screen active">
-    <div class="card">
-      <img id="img" class="verse-img" alt="말씀 이미지">
-      <div id="verse" class="verse-text">아래 버튼을 눌러 랜덤 말씀을 받아보세요.</div>
-      <div id="ref" class="verse-ref"></div>
-      <div id="memo" class="verse-memo"></div>
+  <div class="card">
+    <img id="verseImage" src="" class="verse-img" style="display:none;">
 
-      <button id="btn-random" class="btn btn-primary">랜덤 말씀 보기</button>
-      <button id="btn-save" class="btn">내 말씀 저장</button>
-      <div class="help">※ 처음엔 자동으로 불러오지 않습니다.</div>
-    </div>
-  </section>
+    <p id="verseText"></p>
+    <small id="verseRef"></small>
+    <p id="verseMeditation" class="meditation"></p>
 
-  <!-- 저장함 -->
-  <section id="screen-saved" class="screen">
-    <div class="card">
-      <div style="font-weight:700; margin-bottom:10px;">내가 저장한 말씀</div>
-      <div id="saved-empty" class="help" style="display:none">아직 저장된 말씀이 없습니다.</div>
-      <div id="saved-list" class="list"></div>
-      <button id="btn-export" class="btn">내보내기(.txt)</button>
-      <button id="btn-clear" class="btn btn-danger">전체 삭제</button>
-      <div class="help">저장함에서 각 항목 오른쪽 ‘X’로 개별 삭제 가능</div>
-    </div>
-  </section>
+    <button id="randomBtn">랜덤 말씀 보기</button>
+    <button id="saveBtn" class="secondary">내 말씀 저장</button>
+  </div>
 
-  <!-- 공유 -->
-  <section id="screen-share" class="screen">
-    <div class="card">
-      <div style="font-weight:700; margin-bottom:10px;">현재 말씀 공유</div>
-      <input id="share-link" class="btn" style="text-align:left; overflow:hidden; text-overflow:ellipsis;" readonly value="랜덤 말씀을 먼저 불러오세요." />
-      <button id="btn-copy" class="btn btn-primary">링크 복사</button>
-      <div class="help">※ 공유 링크는 현재 말씀의 ID가 있을 때 생성됩니다.</div>
-    </div>
-  </section>
-</main>
+  <footer>
+    © BlessVerse
+  </footer>
 
-<nav class="tabs">
-  <div class="tab active" data-tab="today">오늘</div>
-  <div class="tab" data-tab="saved">저장함</div>
-  <div class="tab" data-tab="share">공유</div>
-</nav>
-
-<footer>© BlessVerse</footer>
-
-<script>
-  // ====== 환경 ======
-  const API_URL = "https://script.google.com/macros/s/AKfycbziPgmZTutWnA_L1KUTfNrFdbFJnqTRBxbawMsKrOiaOjYuBa0do6D3gMOjFtjz1r_ZhA/exec";
-
-  // ====== 상태 ======
-  let current = null; // {ID, Verse, Reference, Meditation, ImageURL, Tag}
-
-  // ====== 요소 ======
-  const elImg   = document.getElementById('img');
-  const elVerse = document.getElementById('verse');
-  const elRef   = document.getElementById('ref');
-  const elMemo  = document.getElementById('memo');
-
-  const elShare = document.getElementById('share-link');
-  const savedList = document.getElementById('saved-list');
-  const savedEmpty = document.getElementById('saved-empty');
-
-  // ====== 탭 전환 ======
-  document.querySelectorAll('.tab').forEach(t=>{
-    t.addEventListener('click', ()=>{
-      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-      t.classList.add('active');
-      const tab = t.dataset.tab;
-      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-      document.getElementById(`screen-${tab}`).classList.add('active');
-      if(tab==='saved'){ renderSaved(); }
-    });
-  });
-
-  // ====== 랜덤 불러오기 (자동 불러오기 없음!) ======
-  document.getElementById('btn-random').addEventListener('click', loadRandom);
-
-  async function loadRandom(){
-    try{
-      const res = await fetch(API_URL, {cache:'no-store'});
-      const json = await res.json();
-      const v = json && json.verse ? json.verse : null;
-      if(!v){ throw new Error('응답 형식 오류'); }
-      current = v;
-      renderCurrent();
-      updateShareLink();
-    }catch(e){
-      elVerse.textContent = '불러오는 중 오류가 발생했습니다.';
-      elRef.textContent = '';
-      elMemo.textContent = '';
-      elImg.style.display = 'none';
-    }
-  }
-
-  function renderCurrent(){
-    elVerse.textContent = current.Verse || '';
-    elRef.textContent   = current.Reference || '';
-    elMemo.textContent  = current.Meditation || '';
-
-    if(current.ImageURL && current.ImageURL.trim()){
-      elImg.src = current.ImageURL.trim();
-      elImg.style.display = 'block';
-    }else{
-      elImg.style.display = 'none';
-    }
-  }
-
-  // ====== 저장 기능 ======
-  const KEY = 'bless_saved_verses';
-
-  document.getElementById('btn-save').addEventListener('click', ()=>{
-    if(!current){
-      alert('랜덤 말씀을 먼저 불러오세요.');
-      return;
-    }
-    const list = loadSaved();
-    // 중복(같은 ID) 방지
-    if(current.ID && list.some(x=>x.ID===current.ID)){
-      alert('이미 저장된 말씀입니다.');
-      return;
-    }
-    list.unshift(current);
-    localStorage.setItem(KEY, JSON.stringify(list));
-    alert('저장했습니다.');
-  });
-
-  function loadSaved(){
-    try{
-      return JSON.parse(localStorage.getItem(KEY)) || [];
-    }catch{ return []; }
-  }
-
-  function renderSaved(){
-    const list = loadSaved();
-    savedList.innerHTML = '';
-    savedEmpty.style.display = list.length ? 'none' : 'block';
-
-    list.forEach((v, idx)=>{
-      const item = document.createElement('div');
-      item.className = 'item';
-
-      const top = document.createElement('div');
-      top.className = 'item-top';
-
-      if(v.ImageURL){
-        const img = document.createElement('img');
-        img.className = 'item-img';
-        img.src = v.ImageURL;
-        top.appendChild(img);
-      }
-
-      const right = document.createElement('div');
-      const text = document.createElement('div');
-      text.className = 'item-verse';
-      text.textContent = v.Verse || '';
-      right.appendChild(text);
-
-      const ref = document.createElement('div');
-      ref.className = 'item-ref';
-      ref.textContent = v.Reference || '';
-      right.appendChild(ref);
-
-      top.appendChild(right);
-      item.appendChild(top);
-
-      const actions = document.createElement('div');
-      actions.className = 'item-actions';
-
-      const btnDel = document.createElement('button');
-      btnDel.className = 'btn btn-danger';
-      btnDel.textContent = '삭제';
-      btnDel.onclick = ()=>{
-        const cur = loadSaved();
-        cur.splice(idx,1);
-        localStorage.setItem(KEY, JSON.stringify(cur));
-        renderSaved();
-      };
-      actions.appendChild(btnDel);
-
-      const btnOpen = document.createElement('button');
-      btnOpen.className = 'btn';
-      btnOpen.textContent = '오늘 화면으로 보기';
-      btnOpen.onclick = ()=>{
-        current = v;
-        renderCurrent();
-        updateShareLink();
-        // 탭 이동
-        document.querySelector('[data-tab="today"]').click();
-      };
-      actions.appendChild(btnOpen);
-
-      item.appendChild(actions);
-      savedList.appendChild(item);
-    });
-  }
-
-  document.getElementById('btn-clear').addEventListener('click', ()=>{
-    if(confirm('저장한 말씀을 모두 삭제할까요?')){
-      localStorage.removeItem(KEY);
-      renderSaved();
-    }
-  });
-
-  document.getElementById('btn-export').addEventListener('click', ()=>{
-    const list = loadSaved();
-    if(!list.length){ alert('저장된 말씀이 없습니다.'); return; }
-    const text = list.map(v=>`${v.Verse}\n${v.Reference}${v.Meditation?'\n'+v.Meditation:''}\n`).join('\n');
-    const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'my-verses.txt';
-    a.click();
-    URL.revokeObjectURL(a.href);
-  });
-
-  // ====== 공유 링크 ======
-  function updateShareLink(){
-    if(current && current.ID){
-      elShare.value = `${API_URL}?id=${encodeURIComponent(current.ID)}`;
-    }else{
-      elShare.value = '현재 말씀 ID가 없어 공유 링크를 만들 수 없습니다. (랜덤 말씀 다시 시도)';
-    }
-  }
-  document.getElementById('btn-copy').addEventListener('click', async ()=>{
-    try{
-      await navigator.clipboard.writeText(elShare.value);
-      alert('링크를 복사했습니다.');
-    }catch{
-      alert('복사에 실패했습니다. (클립보드 권한 확인)');
-    }
-  });
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
+
+
+const API_URL = "https://script.google.com/macros/s/AKfycbziPgmZTutWnA_L1KUTfNrFdbFJnqTRBxbawMsKrOiaOjYuBa0do6D3gMOjFtjz1r_ZhA/exec";
+
+const verseText = document.getElementById("verseText");
+const verseRef = document.getElementById("verseRef");
+const verseMeditation = document.getElementById("verseMeditation");
+const verseImage = document.getElementById("verseImage");
+
+document.getElementById("randomBtn").addEventListener("click", getRandomVerse);
+document.getElementById("saveBtn").addEventListener("click", saveCurrentVerse);
+
+let currentVerse = null;
+
+// ✅ 랜덤 구절 가져오기 (버튼 눌렀을 때만)
+async function getRandomVerse() {
+  const res = await fetch(API_URL);
+  const data = await res.json();
+
+  currentVerse = data.verse;
+  displayVerse(data.verse);
+}
+
+// ✅ 화면에 표시
+function displayVerse(v) {
+  verseText.textContent = v.Verse;
+  verseRef.textContent = v.Reference;
+  verseMeditation.textContent = v.Meditation || "";
+
+  if (v.ImageURL) {
+    verseImage.src = v.ImageURL;
+    verseImage.style.display = "block";
+  } else {
+    verseImage.style.display = "none";
+  }
+}
+
+// ✅ 저장 기능 복구 (localStorage 기반)
+function saveCurrentVerse() {
+  if (!currentVerse) return alert("먼저 말씀을 불러주세요!");
+
+  let saved = JSON.parse(localStorage.getItem("savedVerses") || "[]");
+  saved.push(currentVerse);
+  localStorage.setItem("savedVerses", JSON.stringify(saved));
+
+  alert("✅ 내 말씀에 저장되었습니다!");
+}
