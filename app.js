@@ -1,40 +1,29 @@
-
-// ✅ 네가 방금 "배포 → 웹앱" 에서 복사한 URL 여기에 넣기
 const API_URL = "https://script.google.com/macros/s/AKfycbziPgmZTutWnA_L1KUTfNrFdbFJnqTRBxbawMsKrOiaOjYuBa0do6D3gMOjFtjz1r_ZhA/exec";
 
-// HTML 요소 선택 도우미
-const $ = (id) => document.getElementById(id);
-
-// 탭 전환
-function showPage(page) {
-  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
-  $(page).style.display = "block";
-
-  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-  document.querySelector(`[data-page="${page}"]`).classList.add("active");
-}
-
-// 랜덤 말씀 불러오기
-async function loadVerse() {
+// 오늘의 말씀 불러오기
+async function loadRandomVerse() {
   try {
-    const res = await fetch(API_URL + "?_t=" + Date.now());
+    const res = await fetch(API_URL);
     const data = await res.json();
 
+    if (!data.ok || !data.verse) {
+      document.getElementById("verseText").innerText = "말씀을 불러올 수 없습니다.";
+      return;
+    }
+
     const v = data.verse;
-    $("verseText").textContent = v.Verse;
-    $("verseRef").textContent = v.Reference;
+
+    // 화면 반영
+    document.getElementById("verseText").innerText = v.Verse || "";
+    document.getElementById("verseRef").innerText = v.Reference || "";
   } catch (e) {
-    $("verseText").textContent = "불러오기 실패";
-    $("verseRef").textContent = "";
+    console.log("에러:", e);
+    document.getElementById("verseText").innerText = "네트워크 오류가 발생했습니다.";
   }
 }
 
-// 저장
-function saveVerse() {
-  const item = {
-    verse: $("verseText").textContent,
-    ref: $("verseRef").textContent
-  };
+// 버튼 클릭 이벤트
+document.getElementById("btn-random").addEventListener("click", loadRandomVerse);
 
-  let list = JSON.parse(localStorage.getItem("savedVerses") || "[]");
-  if (!list.some(x => x.verse === item.verse &&
+// 첫 화면 자동 실행
+loadRandomVerse();
