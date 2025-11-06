@@ -1,0 +1,10 @@
+blessverse/
+│ index.html
+│ saved.html
+│ share.html
+│ style.css
+│ script.js
+└ assets/
+    bible.svg
+    bookmark.svg
+    share.svg
