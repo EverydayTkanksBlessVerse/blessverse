@@ -1,104 +1,159 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>BlessVerse</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body {
-  margin:0; font-family:'Pretendard', sans-serif; text-align:center;
-  background: linear-gradient(to bottom, #ffd5e7, #cfe7ff, #ffd5e7);
+  margin: 0;
+  font-family: 'Pretendard', sans-serif;
+  background: linear-gradient(to bottom, #ffd5e5, #d6e8ff);
+  text-align: center;
+  color: #333;
+}
+.container {
+  margin-top: 40px;
 }
 .card {
-  width: 330px; margin: 80px auto; padding: 30px;
-  background:white; border-radius:16px; box-shadow:0 4px 15px rgba(0,0,0,0.1);
+  background: white;
+  width: 320px;
+  padding: 22px;
+  border-radius: 14px;
+  margin: 0 auto;
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
 }
-img { width:100%; border-radius:12px; margin-bottom:20px; display:none; }
-button {
-  width:80%; padding:12px; border:none; border-radius:8px;
-  font-size:15px; cursor:pointer; margin-top:10px;
+.card img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 14px;
 }
-#randomBtn { background:#ff7a9e; color:white; }
-#saveBtn { background:white; border:1px solid #ccc; }
-.bottom-bar {
-  position:fixed; bottom:0; left:0; width:100%;
-  display:flex; justify-content:space-between; padding:15px 40px;
-  font-size:14px; background:white;
+.button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  margin-top: 8px;
+  font-size: 14px;
 }
-a { text-decoration:none; color:black; }
+.btn-main { background:#ff94a8; color:white; }
+.btn-sub { background:white; border:1px solid #ddd; }
+#savedSection { display:none; }
+
+/* 하단 메뉴 */
+.navbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background:white;
+  border-top:1px solid #ccc;
+  display:flex;
+  justify-content:space-around;
+  padding:10px 0;
+}
+.nav-item { font-size:14px; cursor:pointer; }
 </style>
 </head>
 <body>
 
-<h1>BlessVerse</h1>
+<h2>BlessVerse</h2>
 
-<div class="card">
-  <img id="verseImage">
-  <div id="verseText"></div>
-  <div style="margin-top:8px; color:#666;" id="verseRef"></div>
-  <div style="margin-top:8px; font-weight:600;" id="verseMeditation"></div>
-
-  <button id="randomBtn">랜덤 말씀 보기</button>
-  <button id="saveBtn">내 말씀 저장</button>
+<!-- 오늘의 말씀 -->
+<div id="homeSection" class="container">
+  <div class="card">
+    <img id="verseImage" src="" alt="말씀 이미지" style="display:none;">
+    <h3 id="verseText"></h3>
+    <p id="verseRef" style="color:#666; font-size:13px;"></p>
+    <p id="verseMeditation" style="font-size:14px; margin-top:8px;"></p>
+    <button class="button btn-main" onclick="getRandomVerse()">랜덤 말씀 보기</button>
+    <button class="button btn-sub" onclick="saveMyVerse()">내 말씀 저장</button>
+  </div>
 </div>
 
-<div class="bottom-bar">
-  <a href="saved.html">저장함</a>
-  <a id="shareBtn">공유</a>
+<!-- 저장함 -->
+<div id="savedSection" class="container">
+  <h3>📖 저장한 말씀</h3>
+  <div id="savedList"></div>
+</div>
+
+<!-- 하단 메뉴 -->
+<div class="navbar">
+  <div class="nav-item" onclick="showHome()">오늘</div>
+  <div class="nav-item" onclick="showSaved()">저장함</div>
+  <div class="nav-item" onclick="share()">공유</div>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbziPgmZTutWnA_L1KUTfNrFdbFJnqTRBxbawMsKrOiaOjYuBa0do6D3gMOjFtjz1r_ZhA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbziPgmZTutWnA_L1KUTfNrFdbFJnqTRBxbawMsKrOiaOjYuBa0do6D3gMOjFtjz1r_ZhA/exec";
 
-// 요소 연결
-const verseImage = document.getElementById("verseImage");
-const verseText = document.getElementById("verseText");
-const verseRef = document.getElementById("verseRef");
-const verseMeditation = document.getElementById("verseMeditation");
-const randomBtn = document.getElementById("randomBtn");
-const saveBtn = document.getElementById("saveBtn");
-const shareBtn = document.getElementById("shareBtn");
+function showHome() {
+  document.getElementById("homeSection").style.display="block";
+  document.getElementById("savedSection").style.display="none";
+}
+function showSaved() {
+  document.getElementById("homeSection").style.display="none";
+  document.getElementById("savedSection").style.display="block";
+  loadSavedVerses();
+}
 
-let currentVerse = null;
+async function getRandomVerse(){
+  const res = await fetch(API_URL);
+  const data = await res.json();
+  const v = data.verse;
 
-// 말씀 표시 함수
-function displayVerse(v){
-  currentVerse = v;
-  verseText.textContent = v.Verse;
-  verseRef.textContent = v.Reference;
-  verseMeditation.textContent = v.Meditation || "";
+  document.getElementById("verseText").innerText = v.Verse;
+  document.getElementById("verseRef").innerText = v.Reference;
+  document.getElementById("verseMeditation").innerText = v.Meditation;
 
   if(v.ImageURL){
-    verseImage.src = v.ImageURL;
-    verseImage.style.display = "block";
-  } else verseImage.style.display = "none";
-}
-
-// 랜덤 말씀 불러오기
-async function getRandom(){
-  const r = await fetch(API);
-  const j = await r.json();
-  displayVerse(j.verse);
-}
-randomBtn.onclick = getRandom;
-
-// 저장
-saveBtn.onclick = () => {
-  let saved = JSON.parse(localStorage.getItem("savedVerses") || "[]");
-  saved.push(currentVerse);
-  localStorage.setItem("savedVerses", JSON.stringify(saved));
-  alert("저장되었습니다 ✅");
-};
-
-// 공유 기능
-shareBtn.onclick = async () => {
-  let text = `${currentVerse.Verse}\n(${currentVerse.Reference})`;
-  if(navigator.share){
-    navigator.share({ title:"BlessVerse", text })
-  } else {
-    navigator.clipboard.writeText(text);
-    alert("🔗 말씀이 클립보드에 복사되었습니다!");
+    document.getElementById("verseImage").src = v.ImageURL;
+    document.getElementById("verseImage").style.display = "block";
   }
-};
+}
+
+function saveMyVerse(){
+  const verse = {
+    text: document.getElementById("verseText").innerText,
+    ref: document.getElementById("verseRef").innerText,
+    med: document.getElementById("verseMeditation").innerText
+  };
+  if(!verse.text) return alert("먼저 말씀을 불러와 주세요!");
+
+  let saved = JSON.parse(localStorage.getItem("savedVerses") || "[]");
+  saved.push(verse);
+  localStorage.setItem("savedVerses", JSON.stringify(saved));
+
+  alert("저장 완료 ✅");
+}
+
+function loadSavedVerses(){
+  const list = document.getElementById("savedList");
+  list.innerHTML = "";
+  let saved = JSON.parse(localStorage.getItem("savedVerses") || "[]");
+
+  if(saved.length === 0){
+    list.innerHTML = "<p>아직 저장한 말씀이 없어요 🙏</p>";
+    return;
+  }
+
+  saved.forEach(v=>{
+    const div = document.createElement("div");
+    div.className="card";
+    div.innerHTML = `<h4>${v.text}</h4><p>${v.ref}</p><p>${v.med}</p>`;
+    list.appendChild(div);
+  });
+}
+
+function share(){
+  const text = document.getElementById("verseText").innerText;
+  if(!text) return alert("먼저 말씀을 불러오세요!");
+
+  navigator.share ?
+    navigator.share({ text }) :
+    alert("📌 공유 기능은 모바일에서 사용 가능합니다.");
+}
 </script>
 
 </body>
