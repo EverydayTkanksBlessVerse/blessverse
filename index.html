@@ -2,62 +2,102 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>오늘의 말씀</title>
+  <title>BlessVerse</title>
   <link href="https://cdn.jsdelivr.net/npm/suitcss@0.0.0/fonts/SUIT-Variable.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body { font-family:'SUIT Variable',sans-serif; background:linear-gradient(#ffd6e8,#cbe7ff); text-align:center; margin:0; padding:0; }
+    h1 { margin-top:40px; font-weight:800; }
+    .tabbar { position:fixed; bottom:0; width:100%; background:white; display:flex; border-top:1px solid #ddd; }
+    .tabbar button { flex:1; padding:14px 0; border:none; background:white; font-size:15px; cursor:pointer; }
+    .active { color:#ff6f95; font-weight:700; }
+
+    .view { display:none; padding-bottom:90px; }
+    .show { display:block; }
+
+    .card, .saved-card {
+      width:330px; background:white; margin:30px auto; border-radius:14px;
+      padding:18px; box-shadow:0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    img { width:100%; border-radius:10px; margin-bottom:14px; }
+
+    button.action { width:90%; padding:12px; border:none; border-radius:8px; background:#ff8aa7; color:white;
+      margin-top:10px; font-size:15px; cursor:pointer;
+    }
+
+    button.white { background:white; border:1px solid #ccc; color:#333; }
+
+    .delete { background:#ff4d4d; margin-top:8px; }
+    .empty { margin-top:50px; color:#666; }
+    footer { margin-top:40px; color:#777; font-size:12px; }
+  </style>
 </head>
 <body>
 
-  <h1>오늘의 말씀</h1>
+  <h1>BlessVerse</h1>
 
-  <div class="card">
-    <img id="verseImage" src="" class="verse-img" style="display:none;">
+  <!-- ✅ 오늘의 말씀 화면 -->
+  <div id="view-today" class="view show">
+    <div class="card">
+      <img id="verseImage" style="display:none;">
+      <p id="verseText"></p>
+      <small id="verseRef"></small>
+      <p id="verseMeditation"></p>
 
-    <p id="verseText"></p>
-    <small id="verseRef"></small>
-    <p id="verseMeditation" class="meditation"></p>
-
-    <button id="randomBtn">랜덤 말씀 보기</button>
-    <button id="saveBtn" class="secondary">내 말씀 저장</button>
+      <button class="action" onclick="getVerse()">랜덤 말씀 보기</button>
+      <button class="action white" onclick="saveVerse()">내 말씀 저장</button>
+    </div>
+    <footer>© BlessVerse</footer>
   </div>
 
-  <footer>
-    © BlessVerse
-  </footer>
+  <!-- ✅ 저장한 말씀 화면 -->
+  <div id="view-saved" class="view">
+    <div id="savedList"></div>
+    <footer>© BlessVerse</footer>
+  </div>
 
-<script src="app.js"></script>
-</body>
-</html>
+  <!-- ✅ 공유 화면 -->
+  <div id="view-share" class="view">
+    <p style="margin-top:60px;">내 카드에 NFC 등록해서<br>말씀 선물하세요 🙏</p>
+    <footer>© BlessVerse</footer>
+  </div>
 
+  <!-- ✅ 하단 탭 -->
+  <div class="tabbar">
+    <button id="tab-today" class="active" onclick="showView('today')">오늘</button>
+    <button id="tab-saved" onclick="showView('saved')">저장함</button>
+    <button id="tab-share" onclick="showView('share')">공유</button>
+  </div>
 
+<script>
 const API_URL = "https://script.google.com/macros/s/AKfycbziPgmZTutWnA_L1KUTfNrFdbFJnqTRBxbawMsKrOiaOjYuBa0do6D3gMOjFtjz1r_ZhA/exec";
-
-const verseText = document.getElementById("verseText");
-const verseRef = document.getElementById("verseRef");
-const verseMeditation = document.getElementById("verseMeditation");
-const verseImage = document.getElementById("verseImage");
-
-document.getElementById("randomBtn").addEventListener("click", getRandomVerse);
-document.getElementById("saveBtn").addEventListener("click", saveCurrentVerse);
 
 let currentVerse = null;
 
-// ✅ 랜덤 구절 가져오기 (버튼 눌렀을 때만)
-async function getRandomVerse() {
-  const res = await fetch(API_URL);
-  const data = await res.json();
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('show'));
+  document.getElementById(`view-${name}`).classList.add('show');
 
-  currentVerse = data.verse;
-  displayVerse(data.verse);
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`tab-${name}`).classList.add('active');
+
+  if(name === 'saved') loadSaved();
 }
 
-// ✅ 화면에 표시
-function displayVerse(v) {
+async function getVerse(){
+  const res = await fetch(API_URL);
+  const data = await res.json();
+  currentVerse = data.verse;
+  displayVerse(currentVerse);
+}
+
+function displayVerse(v){
   verseText.textContent = v.Verse;
   verseRef.textContent = v.Reference;
   verseMeditation.textContent = v.Meditation || "";
 
-  if (v.ImageURL) {
+  if(v.ImageURL){
     verseImage.src = v.ImageURL;
     verseImage.style.display = "block";
   } else {
@@ -65,13 +105,41 @@ function displayVerse(v) {
   }
 }
 
-// ✅ 저장 기능 복구 (localStorage 기반)
-function saveCurrentVerse() {
-  if (!currentVerse) return alert("먼저 말씀을 불러주세요!");
-
+function saveVerse(){
+  if(!currentVerse) return alert("먼저 말씀을 불러오세요!");
   let saved = JSON.parse(localStorage.getItem("savedVerses") || "[]");
   saved.push(currentVerse);
   localStorage.setItem("savedVerses", JSON.stringify(saved));
-
-  alert("✅ 내 말씀에 저장되었습니다!");
+  alert("✅ 저장되었습니다!");
 }
+
+function loadSaved(){
+  let saved = JSON.parse(localStorage.getItem("savedVerses") || "[]");
+  const box = document.getElementById("savedList");
+
+  if(saved.length === 0) {
+    box.innerHTML = `<p class="empty">아직 저장된 말씀이 없습니다.</p>`;
+    return;
+  }
+
+  box.innerHTML = saved.map((v,i)=>`
+    <div class="saved-card">
+      ${v.ImageURL ? `<img src="${v.ImageURL}">` : ""}
+      <p>${v.Verse}</p>
+      <small>${v.Reference}</small>
+      <p>${v.Meditation || ""}</p>
+      <button class="delete" onclick="deleteVerse(${i})">삭제</button>
+    </div>
+  `).join("");
+}
+
+function deleteVerse(i){
+  let saved = JSON.parse(localStorage.getItem("savedVerses") || "[]");
+  saved.splice(i,1);
+  localStorage.setItem("savedVerses", JSON.stringify(saved));
+  loadSaved();
+}
+</script>
+
+</body>
+</html>
