@@ -97,13 +97,14 @@ function displayVerse(v){
   verseRef.textContent = v.Reference;
   verseMeditation.textContent = v.Meditation || "";
 
-  if(v.ImageURL){
+  if(v.ImageURL && v.ImageURL.trim() !== ""){
     verseImage.src = v.ImageURL;
     verseImage.style.display = "block";
   } else {
     verseImage.style.display = "none";
   }
 }
+
 
 function saveVerse(){
   if(!currentVerse) return alert("먼저 말씀을 불러오세요!");
