@@ -75,9 +75,20 @@
     }
     .item{border:1px solid #eee; border-radius:10px; padding:12px; margin:10px 0;}
   </style>
-</head>
+</head
+  
 <body>
 
+<button onclick="location.href='index.html'" 
+style="position:fixed; top:16px; left:16px; padding:8px 14px; 
+border-radius:8px; border:none; background:white; 
+box-shadow:0 4px 12px rgba(0,0,0,.15); font-weight:600; cursor:pointer;">
+← 홈으로
+</button>
+
+
+
+  
 <!-- ✅ 홈으로 버튼 수정 -->
 <button onclick="location.href='index.html'" 
 style="position:fixed; top:16px; left:16px; padding:8px 16px;
@@ -117,7 +128,7 @@ border-radius:8px; background:white; border:none; cursor:pointer; font-weight:60
 
 <script>
 // ✅ 기능 유지 + 공유 삭제버전 그대로 적용
-const BASE_URL = "YOUR_GAS_URL";
+const BASE_URL = "https://script.google.com/macros/s/AKfycbziPgmZTutWnA_L1KUTfNrFdbFJnqTRBxbawMsKrOiaOjYuBa0do6D3gMOjFtjz1r_ZhA/exec ";
 
 const verseText = document.getElementById("verseText");
 const reference = document.getElementById("reference");
