@@ -392,8 +392,34 @@ els.clearSaved.addEventListener('click', ()=>{
 els.savedList.addEventListener('click', onSavedListClick);
 
 /** 초기화 */
+// 페이지 진입 시 해시(#saved / #share) 체크
+window.addEventListener("load", () => {
+  const hash = location.hash.replace("#", "");
+
+  // 저장함 자동 오픈
+  if (hash === "saved") {
+    renderSavedList();
+    els.modal.classList.add("on");
+  }
+
+  // 공유 자동 실행
+  if (hash === "share") {
+    setTimeout(() => {
+      share();
+    }, 300);
+  }
+});
+
+  
 setTodayLabel();
 showToday(); // 첫 진입: 오늘의 말씀
 </script>
 </body>
+
+<button onclick="location.href='index.html'" 
+  style="position:fixed; top:16px; left:16px; padding:8px 14px; border-radius:8px; border:none; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,.12); font-weight:600; cursor:pointer;">
+← 홈
+</button>
+
+  
 </html>
