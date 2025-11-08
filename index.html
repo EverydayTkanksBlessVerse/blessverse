@@ -28,27 +28,11 @@
     text-align:center;
   }
 
-  h1 {
-    font-size:26px;
-    font-weight:800;
-    margin-bottom:6px;
-  }
+  h1 { font-size:26px; font-weight:800; margin-bottom:6px; }
+  .sub { font-size:13px; color:var(--sub); margin-bottom:22px; }
 
-  .sub {
-    font-size:13px;
-    color:var(--sub);
-    margin-bottom:22px;
-  }
+  .usage-btn { font-size:14px; cursor:pointer; color:#444; text-decoration:underline; margin-bottom:16px; }
 
-  .usage-btn {
-    font-size:14px; 
-    cursor:pointer;
-    color:#444;
-    text-decoration:underline;
-    margin-bottom:16px;
-  }
-
-  /* 사용법 박스 */
   .usage-box {
     width:min(90vw,500px);
     background:var(--pill);
@@ -61,47 +45,30 @@
     margin-bottom:20px;
   }
 
-  /* pill 버튼 */
-  .menu {
-    width:min(92vw, 500px);
-    display:flex;
-    flex-direction:column;
-    gap:14px;
-    margin-top:10px;
-  }
-
-  .pill {
-    background:var(--pill);
-    border-radius:14px;
-    padding:16px;
-    font-size:16px;
-    font-weight:600;
-    cursor:pointer;
-    box-shadow:var(--shadow);
-  }
+  .menu { width:min(92vw, 500px); display:flex; flex-direction:column; gap:14px; margin-top:10px; }
+  .pill { background:var(--pill); border-radius:14px; padding:16px; font-size:16px; font-weight:600; cursor:pointer; box-shadow:var(--shadow); }
 
 </style>
 </head>
 
 <body>
 
-  <h1>✝️ 오늘의 말씀</h1>
-  <div class="sub">(주님과 함께 오늘도)</div>
+<h1>✝️ 오늘의 말씀</h1>
+<div class="sub">(주님과 함께 오늘도)</div>
 
-  <div class="usage-btn" id="usageToggle">📖 오늘의 말씀 사용법</div>
+<div class="usage-btn" id="usageToggle">📖 오늘의 말씀 사용법</div>
 
-  <div class="usage-box" id="usageBox">
-    1) '오늘의 말씀' 버튼을 눌러 하루의 말씀을 확인하세요.<br>
-    2) 마음에 와닿는 말씀은 '저장하기' 버튼으로 보관할 수 있습니다.<br>
-    3) 저장된 말씀은 '저장함'에서 언제든 다시 볼 수 있습니다.<br>
-    4) 말씀을 친구와 공유하여 축복을 나누세요. 🕊
-  </div>
+<div class="usage-box" id="usageBox">
+  1) '오늘의 말씀' 버튼을 눌러 하루의 말씀을 확인하세요.<br>
+  2) 마음에 와닿는 말씀은 '저장하기' 버튼으로 보관할 수 있습니다.<br>
+  3) 저장된 말씀은 '저장함'에서 언제든 다시 볼 수 있습니다.<br>
+  4) 말씀을 친구와 공유하여 축복을 나누세요. 🕊
+</div>
 
-  <div class="menu">
-    <div class="pill" onclick="location.href='verse.html'">📖 오늘의 말씀</div>
-    <div class="pill" onclick="location.href='verse.html#saved'">⭐ 말씀 저장함</div>
-    
-  </div>
+<div class="menu">
+  <div class="pill" onclick="location.href='verse.html'">📖 오늘의 말씀</div>
+  <div class="pill" onclick="location.href='verse.html#saved'">⭐ 말씀 저장함</div>
+</div>
 
 <script>
   const btn = document.getElementById("usageToggle");
