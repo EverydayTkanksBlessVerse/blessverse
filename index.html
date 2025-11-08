@@ -1,107 +1,399 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlessVerse</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Pretendard', sans-serif;
-            background: linear-gradient(to bottom, #ffd6e8, #d6eaff, #ffd6e8);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            text-align: center;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>오늘의 말씀</title>
+  <style>
+    :root{
+      --pink:#ffc2d4;
+      --blue:#d6e6ff;
+      --primary:#ff8faa;
+      --ink:#111;
+      --muted:#666;
+      --card-bg:#fff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Pretendard, Apple SD Gothic Neo, Noto Sans KR, "Malgun Gothic", sans-serif;
+      background: linear-gradient(to bottom,var(--pink),var(--blue));
+      min-height:100vh;
+      color:var(--ink);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
+    h1{margin:24px 0 6px; font-size:28px; font-weight:800;}
+    .date{font-size:13px;color:var(--muted); margin-bottom:10px;}
 
-        h1 { margin-top: 25px; font-size: 26px; }
+    .card{
+      width:min(92vw,640px);
+      background:var(--card-bg);
+      border-radius:16px;
+      box-shadow:0 8px 28px rgba(0,0,0,.12);
+      padding:22px 22px 16px;
+      margin:14px auto 20px;
+      text-align:center;
+    }
+    .imgwrap{
+      width:100%;
+      border-radius:12px;
+      overflow:hidden;
+      margin-bottom:14px;
+      display:none; /* 기본은 감춤: 이미지 있을 때만 노출 */
+    }
+    .imgwrap img{
+      width:100%; height:auto; display:block;
+    }
+    .verse{
+      white-space:pre-wrap;
+      line-height:1.65;
+      font-size:18px;
+      font-weight:600;
+    }
+    .ref{
+      margin-top:8px;
+      font-size:14px;
+      color:#444;
+      font-weight:700;
+    }
+    .tag{
+      margin-top:4px;
+      font-size:12px;
+      color:#888;
+    }
 
-        .card {
-            background: white;
-            padding: 25px;
-            margin: 40px auto;
-            width: 85%;
-            max-width: 420px;
-            border-radius: 12px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
-        }
+    .actions{display:flex; gap:8px; justify-content:center; margin:6px 0 10px;}
+    button{
+      border:none; outline:none; cursor:pointer;
+      padding:12px 16px; border-radius:10px; font-weight:700;
+      background:var(--primary); color:#fff; min-width:140px;
+      box-shadow:0 6px 16px rgba(255,143,170,.35);
+    }
+    .light{background:#fff;color:#111;border:1px solid #eee; box-shadow:none}
 
-        .verse-img {
-            width: 100%;
-            border-radius: 10px;
-            margin-bottom: 12px;
-            display: none;
-        }
+    /* bottom bar */
+    .dock{
+      position:fixed; bottom:8px; left:50%; transform:translateX(-50%);
+      display:flex; gap:10px; background:rgba(255,255,255,.85);
+      border:1px solid #eee; backdrop-filter: blur(6px);
+      border-radius:18px; padding:8px 12px; box-shadow:0 8px 22px rgba(0,0,0,.12);
+    }
+    .dock button{min-width:90px; padding:10px 14px; border-radius:12px}
 
-        button {
-            padding: 12px 20px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            margin-top: 10px;
-            font-size: 15px;
-        }
-
-        #randomBtn { background: #ff8ca7; color: white; }
-        #shareBtn { background: transparent; color: black; margin-top: auto; margin-bottom: 15px; }
-    </style>
+    /* saved modal */
+    .modal{
+      position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.35);
+      padding:20px;
+    }
+    .modal.on{display:grid}
+    .sheet{
+      width:min(92vw,680px); max-height:80vh; overflow:auto;
+      background:#fff; border-radius:14px; padding:16px;
+      box-shadow:0 12px 30px rgba(0,0,0,.25);
+      text-align:left;
+    }
+    .sheet h3{margin:0 0 6px}
+    .sheet .hint{color:#888; font-size:12px; margin-bottom:8px}
+    .item{
+      border:1px solid #eee; border-radius:10px; padding:12px; margin:10px 0;
+    }
+    .item .i-verse{font-weight:700}
+    .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between}
+    .row small{color:#666}
+    .ghost{display:none}
+  </style>
 </head>
 <body>
 
-<h1>BlessVerse</h1>
+  <h1>오늘의 말씀</h1>
+  <div class="date" id="todayStr"></div>
 
-<div class="card">
-    <img id="verseImage" class="verse-img">
-    <p id="verseText"></p>
-    <p id="verseRef" style="color: #666; font-size: 14px;"></p>
-    <button id="randomBtn">랜덤 말씀 보기</button>
-</div>
+  <div class="card" id="card">
+    <div class="imgwrap" id="imgwrap"><img id="img" alt="말씀 이미지"/></div>
+    <div class="verse" id="verseText">버튼을 눌러 말씀을 불러오세요.</div>
+    <div class="ref" id="reference"></div>
+    <div class="tag" id="tag" ></div>
 
-<button id="shareBtn">공유</button>
+    <div class="actions">
+      <button id="randomBtn">랜덤 말씀 보기</button>
+      <button class="light" id="saveBtn">저장하기</button>
+    </div>
+  </div>
+
+  <div class="dock">
+    <button class="light" id="todayBtn">오늘</button>
+    <button class="light" id="savedBtn">저장함</button>
+    <button id="shareBtn">공유</button>
+  </div>
+
+  <!-- 저장함 모달 -->
+  <div class="modal" id="modal">
+    <div class="sheet">
+      <div class="row" style="margin-bottom:6px">
+        <h3 style="margin:0">저장한 말씀</h3>
+        <div>
+          <button class="light" id="closeModal">닫기</button>
+          <button class="light" id="clearSaved" style="margin-left:4px">전체삭제</button>
+        </div>
+      </div>
+      <div class="hint">동일 ID는 중복 저장되지 않습니다. (브라우저 로컬에 저장)</div>
+      <div id="savedList"></div>
+      <div class="hint" id="emptyHint">저장된 말씀이 없습니다.</div>
+    </div>
+  </div>
 
 <script>
-const scriptURL = "https://script.google.com/macros/s/AKfycbziPgmZTutWnA_L1KUTfNrFdbFJnqTRBxbawMsKrOiaOjYuBa0do6D3gMOjFtjz1r_ZhA/exec";
-let bibleData = [];
+/** ============== 설정 ============== **/
+const BASE_URL = "https://script.google.com/macros/s/AKfycbziPgmZTutWnA_L1KUTfNrFdbFJnqTRBxbawMsKrOiaOjYuBa0do6D3gMOjFtjz1r_ZhA/exec";
+/* 시트 컬럼: ID, Verse, Reference, ImageURL, Tag */
+/** ================================== **/
 
-fetch(scriptURL)
-  .then(response => response.json())
-  .then(data => {
-    bibleData = data;
-    showRandom();
-  });
+const els = {
+  todayStr: document.getElementById('todayStr'),
+  verseText: document.getElementById('verseText'),
+  reference: document.getElementById('reference'),
+  tag: document.getElementById('tag'),
+  imgwrap: document.getElementById('imgwrap'),
+  img: document.getElementById('img'),
+  randomBtn: document.getElementById('randomBtn'),
+  saveBtn: document.getElementById('saveBtn'),
+  todayBtn: document.getElementById('todayBtn'),
+  shareBtn: document.getElementById('shareBtn'),
+  savedBtn: document.getElementById('savedBtn'),
+  modal: document.getElementById('modal'),
+  closeModal: document.getElementById('closeModal'),
+  clearSaved: document.getElementById('clearSaved'),
+  savedList: document.getElementById('savedList'),
+  emptyHint: document.getElementById('emptyHint'),
+};
 
-function showRandom() {
-  if (bibleData.length === 0) return;
+let allVerses = [];           // 전체 목록 캐시(있으면 사용)
+let current = null;           // 현재 보여주는 말씀 객체
 
-  const random = bibleData[Math.floor(Math.random() * bibleData.length)];
+/** 날짜 표시 */
+function setTodayLabel(){
+  const d = new Date();
+  const s = d.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'short'});
+  els.todayStr.textContent = s;
+}
 
-  document.getElementById("verseText").textContent = random.Verse;
-  document.getElementById("verseRef").textContent = random.Reference;
+/** 유틸: 안전 파서 */
+function pickFromAnyResponse(data){
+  // 형태 A: { ok:true, verse:{...} }
+  if (data && data.verse && data.verse.Verse) return data.verse;
 
-  const img = document.getElementById("verseImage");
-  if (random.ImageURL && random.ImageURL.trim() !== "") {
-      img.src = random.ImageURL;
-      img.style.display = "block";
+  // 형태 B: { verseData:[{...}, ...] }
+  if (data && Array.isArray(data.verseData) && data.verseData.length){
+    allVerses = data.verseData;
+    // 오늘의 말씀 인덱스
+    const idx = (new Date().getDate() - 1) % allVerses.length;
+    return allVerses[idx];
+  }
+
+  // 형태 C: 배열 그 자체
+  if (Array.isArray(data) && data.length){
+    allVerses = data;
+    const idx = (new Date().getDate() - 1) % allVerses.length;
+    return allVerses[idx];
+  }
+
+  return null;
+}
+
+/** GAS에서 오늘의 말씀(혹은 랜덤) 가져오기 - 매우 관대하게 처리 */
+async function fetchTodayFromServer(){
+  // 우선 기본 호출
+  try {
+    const r = await fetch(BASE_URL);
+    const j = await r.json().catch(()=>null);
+    const v = pickFromAnyResponse(j);
+    if (v) return v;
+  } catch(e){ /* ignore */ }
+
+  // 그래도 없으면 랜덤 모드 시도
+  try {
+    const r2 = await fetch(BASE_URL + "?action=random");
+    const j2 = await r2.json().catch(()=>null);
+    if (j2 && j2.verse) return j2.verse;
+  } catch(e){ /* ignore */ }
+
+  // 마지막 방어: localStorage에 캐시된 전체목록이 있으면 사용
+  const cache = localStorage.getItem("__verse_cache__");
+  if (cache){
+    try{
+      const arr = JSON.parse(cache);
+      if (Array.isArray(arr) && arr.length){
+        allVerses = arr;
+        const idx = (new Date().getDate()-1) % arr.length;
+        return arr[idx];
+      }
+    }catch(e){}
+  }
+
+  // 모든 것이 실패하면 null
+  return null;
+}
+
+/** 전체 목록이 필요한 경우 한 번만 받아 캐시 */
+async function ensureAllVerses(){
+  if (allVerses.length) return allVerses;
+  try{
+    const r = await fetch(BASE_URL);
+    const j = await r.json().catch(()=>null);
+    if (j && Array.isArray(j.verseData)) {
+      allVerses = j.verseData;
+    } else if (Array.isArray(j)) {
+      allVerses = j;
+    }
+    // 캐시 저장
+    if (allVerses.length){
+      localStorage.setItem("__verse_cache__",
+        JSON.stringify(allVerses.slice(0, 500))); // 혹시 모를 대용량 방지
+    }
+  }catch(e){}
+  return allVerses;
+}
+
+/** 화면 표시 */
+function render(verseObj){
+  if (!verseObj) return;
+
+  current = verseObj;
+
+  els.verseText.textContent = verseObj.Verse || "";
+  els.reference.textContent = verseObj.Reference || "";
+  els.tag.textContent = verseObj.Tag ? `#${verseObj.Tag}` : "";
+
+  // 이미지
+  const url = (verseObj.ImageURL || "").trim();
+  if (url){
+    els.img.src = url;
+    els.imgwrap.style.display = "block";
   } else {
-      img.style.display = "none";
+    els.img.src = "";
+    els.imgwrap.style.display = "none";
   }
 }
 
-document.getElementById("randomBtn").onclick = showRandom;
-
-document.getElementById("shareBtn").onclick = async () => {
-  if (navigator.share) {
-    navigator.share({
-      title: "BlessVerse",
-      text: "말씀 나눔 💖",
-      url: window.location.href
-    });
-  } else {
-    alert("공유 기능을 지원하지 않는 기기입니다.");
+/** 랜덤 표시 */
+async function showRandom(){
+  // 서버가 랜덤을 직접 주지 않아도, 전체목록 캐시로 랜덤 생성
+  await ensureAllVerses();
+  if (allVerses.length){
+    const i = Math.floor(Math.random()*allVerses.length);
+    render(allVerses[i]);
+    return;
   }
-};
-</script>
+  // 캐시가 없으면 서버 오늘말씀 로직 재사용
+  const v = await fetchTodayFromServer();
+  if (v) render(v);
+  else alert("말씀을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
+}
 
+/** 오늘말씀 표시(기본 진입) */
+async function showToday(){
+  const v = await fetchTodayFromServer();
+  if (v) render(v);
+  else alert("말씀을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
+}
+
+/** 저장함 로직 (localStorage) */
+const SAVED_KEY = "__saved_verses__"; // [{ID, Verse, Reference, ImageURL, Tag, savedAt}]
+
+function loadSaved(){
+  try{
+    return JSON.parse(localStorage.getItem(SAVED_KEY) || "[]");
+  }catch(e){ return []; }
+}
+function saveSaved(arr){
+  localStorage.setItem(SAVED_KEY, JSON.stringify(arr));
+}
+
+function saveCurrent(){
+  if (!current) { alert("먼저 말씀을 불러오세요!"); return; }
+  const list = loadSaved();
+  const exists = list.some(x => String(x.ID||"") === String(current.ID||""));
+  if (exists){ alert("이미 저장되어 있습니다."); return; }
+  list.unshift({...current, savedAt: Date.now()});
+  saveSaved(list);
+  alert("저장되었습니다.");
+}
+
+function renderSavedList(){
+  const list = loadSaved();
+  els.savedList.innerHTML = "";
+  els.emptyHint.style.display = list.length ? "none":"block";
+
+  list.forEach((it, idx)=>{
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `
+      <div class="i-verse">${it.Verse || ""}</div>
+      <div class="row" style="margin-top:6px">
+        <small>${it.Reference || ""} ${it.Tag ? " · #"+it.Tag : ""}</small>
+        <div>
+          <button class="light" data-idx="${idx}" data-act="copy">복사</button>
+          <button class="light" data-idx="${idx}" data-act="remove">삭제</button>
+        </div>
+      </div>
+    `;
+    els.savedList.appendChild(div);
+  });
+}
+
+function onSavedListClick(e){
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  const idx = Number(btn.dataset.idx ?? -1);
+  const act = btn.dataset.act;
+  if (idx < 0) return;
+  const list = loadSaved();
+
+  if (act === "remove"){
+    list.splice(idx,1);
+    saveSaved(list);
+    renderSavedList();
+  }
+  if (act === "copy"){
+    const t = `${list[idx].Verse}\n- ${list[idx].Reference}`;
+    navigator.clipboard.writeText(t).then(()=>alert("복사 완료"));
+  }
+}
+
+/** 공유 */
+function share(){
+  if (!current){ alert("먼저 말씀을 불러오세요!"); return; }
+  const text = `${current.Verse}\n- ${current.Reference}`;
+  if (navigator.share){
+    navigator.share({title:"오늘의 말씀", text, url: location.href}).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(text).then(()=>alert("복사 완료"));
+  }
+}
+
+/** 이벤트 바인딩 */
+els.randomBtn.addEventListener('click', showRandom);
+els.saveBtn.addEventListener('click', saveCurrent);
+els.todayBtn.addEventListener('click', showToday);
+els.shareBtn.addEventListener('click', share);
+
+els.savedBtn.addEventListener('click', ()=>{
+  renderSavedList();
+  els.modal.classList.add('on');
+});
+els.closeModal.addEventListener('click', ()=> els.modal.classList.remove('on'));
+els.clearSaved.addEventListener('click', ()=>{
+  if (confirm("모두 삭제하시겠습니까?")){
+    saveSaved([]); renderSavedList();
+  }
+});
+els.savedList.addEventListener('click', onSavedListClick);
+
+/** 초기화 */
+setTodayLabel();
+showToday(); // 첫 진입: 오늘의 말씀
+</script>
 </body>
 </html>
