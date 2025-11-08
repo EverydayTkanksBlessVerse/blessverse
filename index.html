@@ -1,399 +1,235 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>오늘의 말씀</title>
-  <style>
-    :root{
-      --pink:#ffc2d4;
-      --blue:#d6e6ff;
-      --primary:#ff8faa;
-      --ink:#111;
-      --muted:#666;
-      --card-bg:#fff;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Pretendard, Apple SD Gothic Neo, Noto Sans KR, "Malgun Gothic", sans-serif;
-      background: linear-gradient(to bottom,var(--pink),var(--blue));
-      min-height:100vh;
-      color:var(--ink);
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-    }
-    h1{margin:24px 0 6px; font-size:28px; font-weight:800;}
-    .date{font-size:13px;color:var(--muted); margin-bottom:10px;}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>오늘의 말씀</title>
 
-    .card{
-      width:min(92vw,640px);
-      background:var(--card-bg);
-      border-radius:16px;
-      box-shadow:0 8px 28px rgba(0,0,0,.12);
-      padding:22px 22px 16px;
-      margin:14px auto 20px;
-      text-align:center;
-    }
-    .imgwrap{
-      width:100%;
-      border-radius:12px;
-      overflow:hidden;
-      margin-bottom:14px;
-      display:none; /* 기본은 감춤: 이미지 있을 때만 노출 */
-    }
-    .imgwrap img{
-      width:100%; height:auto; display:block;
-    }
-    .verse{
-      white-space:pre-wrap;
-      line-height:1.65;
-      font-size:18px;
-      font-weight:600;
-    }
-    .ref{
-      margin-top:8px;
-      font-size:14px;
-      color:#444;
-      font-weight:700;
-    }
-    .tag{
-      margin-top:4px;
-      font-size:12px;
-      color:#888;
-    }
+<!-- 폰트 -->
+<link href="https://fonts.googleapis.com/css2?family=SUIT:wght@300;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/earlyaccess/maruburi.css" rel="stylesheet">
 
-    .actions{display:flex; gap:8px; justify-content:center; margin:6px 0 10px;}
-    button{
-      border:none; outline:none; cursor:pointer;
-      padding:12px 16px; border-radius:10px; font-weight:700;
-      background:var(--primary); color:#fff; min-width:140px;
-      box-shadow:0 6px 16px rgba(255,143,170,.35);
-    }
-    .light{background:#fff;color:#111;border:1px solid #eee; box-shadow:none}
+<style>
+:root{
+  --bg:#0E2431;
+  --card:rgba(255,255,255,.08);
+  --text:#EAF4F6;
+  --muted:#BFD1D5;
+  --pill:#ffffff;
+  --pill-text:#0E2431;
+  --accent:#7BC6FF;
+}
+*{box-sizing:border-box; font-family:"SUIT",sans-serif;}
+body{margin:0; background:var(--bg); color:var(--text); text-align:center; padding:0;}
 
-    /* bottom bar */
-    .dock{
-      position:fixed; bottom:8px; left:50%; transform:translateX(-50%);
-      display:flex; gap:10px; background:rgba(255,255,255,.85);
-      border:1px solid #eee; backdrop-filter: blur(6px);
-      border-radius:18px; padding:8px 12px; box-shadow:0 8px 22px rgba(0,0,0,.12);
-    }
-    .dock button{min-width:90px; padding:10px 14px; border-radius:12px}
+/* PAGE WRAPPER */
+.page{display:none; padding:32px 20px;}
+.page.active{display:block;}
 
-    /* saved modal */
-    .modal{
-      position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.35);
-      padding:20px;
-    }
-    .modal.on{display:grid}
-    .sheet{
-      width:min(92vw,680px); max-height:80vh; overflow:auto;
-      background:#fff; border-radius:14px; padding:16px;
-      box-shadow:0 12px 30px rgba(0,0,0,.25);
-      text-align:left;
-    }
-    .sheet h3{margin:0 0 6px}
-    .sheet .hint{color:#888; font-size:12px; margin-bottom:8px}
-    .item{
-      border:1px solid #eee; border-radius:10px; padding:12px; margin:10px 0;
-    }
-    .item .i-verse{font-weight:700}
-    .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between}
-    .row small{color:#666}
-    .ghost{display:none}
-  </style>
+/* HOME TITLE */
+.home-title{font-size:32px; margin-top:30px; font-family:"MaruBuri", serif;}
+.home-sub{font-size:15px; opacity:.8; margin-bottom:30px;}
+
+/* PILL BUTTONS */
+.menu{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  margin-top:20px;
+}
+.pill{
+  background:var(--pill);
+  color:var(--pill-text);
+  font-weight:600;
+  padding:14px 18px;
+  border-radius:999px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+  font-size:17px;
+}
+
+/* USAGE TOGGLE */
+#usage-box{margin-top:20px; cursor:pointer; font-size:15px; color:var(--muted);}
+#usage-content{display:none; margin-top:12px; line-height:1.7;}
+
+/* CARD (오늘의말씀 / 저장함 공통) */
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:14px;
+  margin-top:20px;
+  text-align:left;
+}
+
+/* 이미지 */
+#img{width:100%; border-radius:12px; margin-top:12px; display:none;}
+
+/* 버튼 */
+.btn{
+  background:var(--accent);
+  color:#00131D;
+  border:0;
+  border-radius:10px;
+  padding:10px 16px;
+  margin-top:10px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+/* 저장 목록 */
+.saved-item{
+  display:flex;
+  justify-content:space-between;
+  margin:6px 0;
+  border-bottom:1px solid rgba(255,255,255,.1);
+  padding-bottom:6px;
+  font-size:15px;
+}
+.btnX{
+  background:transparent;
+  border:1px solid rgba(255,255,255,.3);
+  color:#fff;
+  border-radius:6px;
+  padding:1px 6px;
+  cursor:pointer;
+}
+
+/* NAV BOTTOM */
+.nav{
+  position:fixed; bottom:0; left:0; right:0;
+  background:rgba(0,0,0,.25);
+  backdrop-filter:blur(10px);
+  display:flex;
+  justify-content:space-around;
+  padding:12px 0;
+}
+.nav-btn{color:var(--muted); font-size:22px; cursor:pointer;}
+.nav-btn.active{color:var(--accent);}
+</style>
 </head>
+
 <body>
 
-  <h1>오늘의 말씀</h1>
-  <div class="date" id="todayStr"></div>
+<!-- 📌 HOME -->
+<section id="home" class="page active">
+  <div class="home-title">✝️ 오늘의 말씀</div>
+  <div class="home-sub">(주님과 함께 오늘도)</div>
 
-  <div class="card" id="card">
-    <div class="imgwrap" id="imgwrap"><img id="img" alt="말씀 이미지"/></div>
-    <div class="verse" id="verseText">버튼을 눌러 말씀을 불러오세요.</div>
-    <div class="ref" id="reference"></div>
-    <div class="tag" id="tag" ></div>
-
-    <div class="actions">
-      <button id="randomBtn">랜덤 말씀 보기</button>
-      <button class="light" id="saveBtn">저장하기</button>
-    </div>
+  <div id="usage-box">📖 오늘의 말씀 사용법 ▽</div>
+  <div id="usage-content">
+    1) '오늘의 말씀' 버튼을 눌러 하루의 말씀을 확인하세요.<br>
+    2) 마음에 와닿는 말씀은 '저장하기' 버튼으로 보관합니다.<br>
+    3) 저장된 말씀은 '저장함'에서 언제든 볼 수 있습니다.<br>
+    4) 말씀을 친구와 공유하여 축복을 나누세요. 🕊
   </div>
 
-  <div class="dock">
-    <button class="light" id="todayBtn">오늘</button>
-    <button class="light" id="savedBtn">저장함</button>
-    <button id="shareBtn">공유</button>
+  <div class="menu">
+    <div class="pill" onclick="go('today')">📖 오늘의 말씀</div>
+    <div class="pill" onclick="go('saved')">⭐ 말씀 저장함</div>
+    <div class="pill" onclick="go('share')">🕊 말씀 공유하기</div>
   </div>
+</section>
 
-  <!-- 저장함 모달 -->
-  <div class="modal" id="modal">
-    <div class="sheet">
-      <div class="row" style="margin-bottom:6px">
-        <h3 style="margin:0">저장한 말씀</h3>
-        <div>
-          <button class="light" id="closeModal">닫기</button>
-          <button class="light" id="clearSaved" style="margin-left:4px">전체삭제</button>
-        </div>
-      </div>
-      <div class="hint">동일 ID는 중복 저장되지 않습니다. (브라우저 로컬에 저장)</div>
-      <div id="savedList"></div>
-      <div class="hint" id="emptyHint">저장된 말씀이 없습니다.</div>
-    </div>
+<!-- 📌 오늘의 말씀 -->
+<section id="today" class="page">
+  <div class="card">
+    <div id="verse">로딩 중...</div>
+    <div id="ref" style="opacity:.7;margin-top:6px;">-</div>
+    <img id="img" />
+    <button class="btn" onclick="loadVerse()">🔄 다른 말씀 보기</button>
+    <button class="btn" onclick="saveVerse()">⭐ 저장하기</button>
   </div>
+</section>
+
+<!-- 📌 저장함 -->
+<section id="saved" class="page">
+  <div class="card">
+    <b>저장된 말씀</b>
+    <div id="savedList" style="margin-top:10px;"></div>
+  </div>
+</section>
+
+<!-- 📌 공유 -->
+<section id="share" class="page">
+  <div class="card">
+    <b>공유 링크</b>
+    <input id="shareLink" style="width:100%;margin-top:10px;padding:10px;border-radius:10px;background:#ffffff20;color:white;border:1px solid #ffffff40;" readonly />
+    <button class="btn" onclick="copyShare()">📋 복사</button>
+  </div>
+</section>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-btn active" onclick="go('home')">🏠</div>
+  <div class="nav-btn" onclick="go('today')">📖</div>
+  <div class="nav-btn" onclick="go('saved')">⭐</div>
+  <div class="nav-btn" onclick="go('share')">🕊</div>
+</div>
 
 <script>
-/** ============== 설정 ============== **/
-const BASE_URL = "https://script.google.com/macros/s/AKfycbziPgmZTutWnA_L1KUTfNrFdbFJnqTRBxbawMsKrOiaOjYuBa0do6D3gMOjFtjz1r_ZhA/exec";
-/* 시트 컬럼: ID, Verse, Reference, ImageURL, Tag */
-/** ================================== **/
+// ✅ API URL 수정
+const API_URL = "https://script.google.com/macros/s/AKfycbziPgmZTutWnA_L1KUTfNrFdbFJnqTRBxbawMsKrOiaOjYuBa0do6D3gMOjFtjz1r_ZhA/exec";
 
-const els = {
-  todayStr: document.getElementById('todayStr'),
-  verseText: document.getElementById('verseText'),
-  reference: document.getElementById('reference'),
-  tag: document.getElementById('tag'),
-  imgwrap: document.getElementById('imgwrap'),
-  img: document.getElementById('img'),
-  randomBtn: document.getElementById('randomBtn'),
-  saveBtn: document.getElementById('saveBtn'),
-  todayBtn: document.getElementById('todayBtn'),
-  shareBtn: document.getElementById('shareBtn'),
-  savedBtn: document.getElementById('savedBtn'),
-  modal: document.getElementById('modal'),
-  closeModal: document.getElementById('closeModal'),
-  clearSaved: document.getElementById('clearSaved'),
-  savedList: document.getElementById('savedList'),
-  emptyHint: document.getElementById('emptyHint'),
+const $=id=>document.getElementById(id);
+
+// NAV
+function go(p){
+  document.querySelectorAll('.page').forEach(pg=>pg.classList.remove('active'));
+  $(p).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// 사용법 토글
+$("usage-box").onclick = ()=>{
+  $("usage-content").style.display = $("usage-content").style.display==="block"?"none":"block";
 };
 
-let allVerses = [];           // 전체 목록 캐시(있으면 사용)
-let current = null;           // 현재 보여주는 말씀 객체
-
-/** 날짜 표시 */
-function setTodayLabel(){
-  const d = new Date();
-  const s = d.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'short'});
-  els.todayStr.textContent = s;
+// 말씀 불러오기
+async function loadVerse(){
+  let res = await fetch(API_URL);
+  let data = await res.json();
+  $("verse").textContent = data.Verse;
+  $("ref").textContent = data.Reference;
+  if(data.ImageURL){
+    $("img").src = data.ImageURL;
+    $("img").style.display="block";
+  } else $("img").style.display="none";
+  $("shareLink").value = location.origin + location.pathname + "?id=" + data.ID;
 }
+loadVerse();
 
-/** 유틸: 안전 파서 */
-function pickFromAnyResponse(data){
-  // 형태 A: { ok:true, verse:{...} }
-  if (data && data.verse && data.verse.Verse) return data.verse;
-
-  // 형태 B: { verseData:[{...}, ...] }
-  if (data && Array.isArray(data.verseData) && data.verseData.length){
-    allVerses = data.verseData;
-    // 오늘의 말씀 인덱스
-    const idx = (new Date().getDate() - 1) % allVerses.length;
-    return allVerses[idx];
-  }
-
-  // 형태 C: 배열 그 자체
-  if (Array.isArray(data) && data.length){
-    allVerses = data;
-    const idx = (new Date().getDate() - 1) % allVerses.length;
-    return allVerses[idx];
-  }
-
-  return null;
+// 저장
+function saveVerse(){
+  let list = JSON.parse(localStorage.getItem("saved")||"[]");
+  list.unshift({v:$("verse").textContent, r:$("ref").textContent});
+  localStorage.setItem("saved", JSON.stringify(list.slice(0,200)));
+  renderSaved();
 }
-
-/** GAS에서 오늘의 말씀(혹은 랜덤) 가져오기 - 매우 관대하게 처리 */
-async function fetchTodayFromServer(){
-  // 우선 기본 호출
-  try {
-    const r = await fetch(BASE_URL);
-    const j = await r.json().catch(()=>null);
-    const v = pickFromAnyResponse(j);
-    if (v) return v;
-  } catch(e){ /* ignore */ }
-
-  // 그래도 없으면 랜덤 모드 시도
-  try {
-    const r2 = await fetch(BASE_URL + "?action=random");
-    const j2 = await r2.json().catch(()=>null);
-    if (j2 && j2.verse) return j2.verse;
-  } catch(e){ /* ignore */ }
-
-  // 마지막 방어: localStorage에 캐시된 전체목록이 있으면 사용
-  const cache = localStorage.getItem("__verse_cache__");
-  if (cache){
-    try{
-      const arr = JSON.parse(cache);
-      if (Array.isArray(arr) && arr.length){
-        allVerses = arr;
-        const idx = (new Date().getDate()-1) % arr.length;
-        return arr[idx];
-      }
-    }catch(e){}
-  }
-
-  // 모든 것이 실패하면 null
-  return null;
+function renderSaved(){
+  let list = JSON.parse(localStorage.getItem("saved")||"[]");
+  $("savedList").innerHTML = list.map((x,i)=>`
+    <div class="saved-item">
+      <span>${x.v} (${x.r})</span>
+      <button class="btnX" onclick="del(${i})">X</button>
+    </div>`).join("");
 }
-
-/** 전체 목록이 필요한 경우 한 번만 받아 캐시 */
-async function ensureAllVerses(){
-  if (allVerses.length) return allVerses;
-  try{
-    const r = await fetch(BASE_URL);
-    const j = await r.json().catch(()=>null);
-    if (j && Array.isArray(j.verseData)) {
-      allVerses = j.verseData;
-    } else if (Array.isArray(j)) {
-      allVerses = j;
-    }
-    // 캐시 저장
-    if (allVerses.length){
-      localStorage.setItem("__verse_cache__",
-        JSON.stringify(allVerses.slice(0, 500))); // 혹시 모를 대용량 방지
-    }
-  }catch(e){}
-  return allVerses;
+function del(i){
+  let list = JSON.parse(localStorage.getItem("saved")||"[]");
+  list.splice(i,1);
+  localStorage.setItem("saved",JSON.stringify(list));
+  renderSaved();
 }
+renderSaved();
 
-/** 화면 표시 */
-function render(verseObj){
-  if (!verseObj) return;
-
-  current = verseObj;
-
-  els.verseText.textContent = verseObj.Verse || "";
-  els.reference.textContent = verseObj.Reference || "";
-  els.tag.textContent = verseObj.Tag ? `#${verseObj.Tag}` : "";
-
-  // 이미지
-  const url = (verseObj.ImageURL || "").trim();
-  if (url){
-    els.img.src = url;
-    els.imgwrap.style.display = "block";
-  } else {
-    els.img.src = "";
-    els.imgwrap.style.display = "none";
-  }
+// 공유
+async function copyShare(){
+  await navigator.clipboard.writeText($("shareLink").value);
+  alert("복사되었습니다.")
 }
-
-/** 랜덤 표시 */
-async function showRandom(){
-  // 서버가 랜덤을 직접 주지 않아도, 전체목록 캐시로 랜덤 생성
-  await ensureAllVerses();
-  if (allVerses.length){
-    const i = Math.floor(Math.random()*allVerses.length);
-    render(allVerses[i]);
-    return;
-  }
-  // 캐시가 없으면 서버 오늘말씀 로직 재사용
-  const v = await fetchTodayFromServer();
-  if (v) render(v);
-  else alert("말씀을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
-}
-
-/** 오늘말씀 표시(기본 진입) */
-async function showToday(){
-  const v = await fetchTodayFromServer();
-  if (v) render(v);
-  else alert("말씀을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
-}
-
-/** 저장함 로직 (localStorage) */
-const SAVED_KEY = "__saved_verses__"; // [{ID, Verse, Reference, ImageURL, Tag, savedAt}]
-
-function loadSaved(){
-  try{
-    return JSON.parse(localStorage.getItem(SAVED_KEY) || "[]");
-  }catch(e){ return []; }
-}
-function saveSaved(arr){
-  localStorage.setItem(SAVED_KEY, JSON.stringify(arr));
-}
-
-function saveCurrent(){
-  if (!current) { alert("먼저 말씀을 불러오세요!"); return; }
-  const list = loadSaved();
-  const exists = list.some(x => String(x.ID||"") === String(current.ID||""));
-  if (exists){ alert("이미 저장되어 있습니다."); return; }
-  list.unshift({...current, savedAt: Date.now()});
-  saveSaved(list);
-  alert("저장되었습니다.");
-}
-
-function renderSavedList(){
-  const list = loadSaved();
-  els.savedList.innerHTML = "";
-  els.emptyHint.style.display = list.length ? "none":"block";
-
-  list.forEach((it, idx)=>{
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerHTML = `
-      <div class="i-verse">${it.Verse || ""}</div>
-      <div class="row" style="margin-top:6px">
-        <small>${it.Reference || ""} ${it.Tag ? " · #"+it.Tag : ""}</small>
-        <div>
-          <button class="light" data-idx="${idx}" data-act="copy">복사</button>
-          <button class="light" data-idx="${idx}" data-act="remove">삭제</button>
-        </div>
-      </div>
-    `;
-    els.savedList.appendChild(div);
-  });
-}
-
-function onSavedListClick(e){
-  const btn = e.target.closest("button");
-  if (!btn) return;
-  const idx = Number(btn.dataset.idx ?? -1);
-  const act = btn.dataset.act;
-  if (idx < 0) return;
-  const list = loadSaved();
-
-  if (act === "remove"){
-    list.splice(idx,1);
-    saveSaved(list);
-    renderSavedList();
-  }
-  if (act === "copy"){
-    const t = `${list[idx].Verse}\n- ${list[idx].Reference}`;
-    navigator.clipboard.writeText(t).then(()=>alert("복사 완료"));
-  }
-}
-
-/** 공유 */
-function share(){
-  if (!current){ alert("먼저 말씀을 불러오세요!"); return; }
-  const text = `${current.Verse}\n- ${current.Reference}`;
-  if (navigator.share){
-    navigator.share({title:"오늘의 말씀", text, url: location.href}).catch(()=>{});
-  } else {
-    navigator.clipboard.writeText(text).then(()=>alert("복사 완료"));
-  }
-}
-
-/** 이벤트 바인딩 */
-els.randomBtn.addEventListener('click', showRandom);
-els.saveBtn.addEventListener('click', saveCurrent);
-els.todayBtn.addEventListener('click', showToday);
-els.shareBtn.addEventListener('click', share);
-
-els.savedBtn.addEventListener('click', ()=>{
-  renderSavedList();
-  els.modal.classList.add('on');
-});
-els.closeModal.addEventListener('click', ()=> els.modal.classList.remove('on'));
-els.clearSaved.addEventListener('click', ()=>{
-  if (confirm("모두 삭제하시겠습니까?")){
-    saveSaved([]); renderSavedList();
-  }
-});
-els.savedList.addEventListener('click', onSavedListClick);
-
-/** 초기화 */
-setTodayLabel();
-showToday(); // 첫 진입: 오늘의 말씀
 </script>
 </body>
 </html>
