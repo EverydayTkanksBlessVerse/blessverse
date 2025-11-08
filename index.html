@@ -3,157 +3,98 @@
 <head>
 <meta charset="UTF-8">
 <title>BlessVerse</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body {
-  margin: 0;
-  font-family: 'Pretendard', sans-serif;
-  background: linear-gradient(to bottom, #ffd5e5, #d6e8ff);
-  text-align: center;
-  color: #333;
-}
-.container {
-  margin-top: 40px;
-}
-.card {
-  background: white;
-  width: 320px;
-  padding: 22px;
-  border-radius: 14px;
-  margin: 0 auto;
-  box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
-}
-.card img {
-  width: 100%;
-  border-radius: 10px;
-  margin-bottom: 14px;
-}
-.button {
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  margin-top: 8px;
-  font-size: 14px;
-}
-.btn-main { background:#ff94a8; color:white; }
-.btn-sub { background:white; border:1px solid #ddd; }
-#savedSection { display:none; }
-
-/* 하단 메뉴 */
-.navbar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background:white;
-  border-top:1px solid #ccc;
-  display:flex;
-  justify-content:space-around;
-  padding:10px 0;
-}
-.nav-item { font-size:14px; cursor:pointer; }
+    body {
+        margin: 0;
+        font-family: "Pretendard", sans-serif;
+        background: linear-gradient(180deg, #f7d8e9, #cde5f9, #f7d8e9);
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+    .card {
+        margin: auto;
+        width: 300px;
+        padding: 25px;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        text-align: center;
+        animation: fadeIn .5s ease-in-out;
+    }
+    @keyframes fadeIn {
+        from {opacity: 0; transform: translateY(10px);}
+        to {opacity: 1; transform: translateY(0);}
+    }
+    .verse { font-size: 18px; margin-top: 15px; font-weight: 600; }
+    .reference { margin-top: 8px; font-size: 14px; color: #666; }
+    .meditation { margin-top: 12px; font-size: 13px; color: #444; }
+    .btn {
+        margin-top: 16px;
+        padding: 10px;
+        border-radius: 8px;
+        border: none;
+        background: #ff88aa;
+        color: white;
+        cursor: pointer;
+        font-size: 15px;
+        width: 100%;
+    }
+    .navbar {
+        padding: 12px;
+        text-align: center;
+        background: rgba(255,255,255,0.6);
+        display: flex;
+        justify-content: space-around;
+        position: fixed;
+        bottom: 0; width: 100%;
+        backdrop-filter: blur(10px);
+    }
+    .nav-item { cursor: pointer; font-weight: 600; }
 </style>
 </head>
 <body>
 
-<h2>BlessVerse</h2>
-
-<!-- 오늘의 말씀 -->
-<div id="homeSection" class="container">
-  <div class="card">
-    <img id="verseImage" src="" alt="말씀 이미지" style="display:none;">
-    <h3 id="verseText"></h3>
-    <p id="verseRef" style="color:#666; font-size:13px;"></p>
-    <p id="verseMeditation" style="font-size:14px; margin-top:8px;"></p>
-    <button class="button btn-main" onclick="getRandomVerse()">랜덤 말씀 보기</button>
-    <button class="button btn-sub" onclick="saveMyVerse()">내 말씀 저장</button>
-  </div>
+<div id="card" class="card">
+    <div class="verse">불러오는 중...</div>
+    <div class="reference"></div>
+    <div class="meditation"></div>
 </div>
 
-<!-- 저장함 -->
-<div id="savedSection" class="container">
-  <h3>📖 저장한 말씀</h3>
-  <div id="savedList"></div>
-</div>
-
-<!-- 하단 메뉴 -->
 <div class="navbar">
-  <div class="nav-item" onclick="showHome()">오늘</div>
-  <div class="nav-item" onclick="showSaved()">저장함</div>
-  <div class="nav-item" onclick="share()">공유</div>
+    <div class="nav-item" onclick="loadRandom()">오늘</div>
+    <div class="nav-item" onclick="saveVerse()">저장함</div>
+    <div class="nav-item" onclick="shareVerse()">공유</div>
 </div>
 
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbziPgmZTutWnA_L1KUTfNrFdbFJnqTRBxbawMsKrOiaOjYuBa0do6D3gMOjFtjz1r_ZhA/exec";
 
-function showHome() {
-  document.getElementById("homeSection").style.display="block";
-  document.getElementById("savedSection").style.display="none";
-}
-function showSaved() {
-  document.getElementById("homeSection").style.display="none";
-  document.getElementById("savedSection").style.display="block";
-  loadSavedVerses();
-}
+async function loadRandom() {
+    try {
+        const res = await fetch(API_URL);
+        const { ok, verse } = await res.json();
 
-async function getRandomVerse(){
-  const res = await fetch(API_URL);
-  const data = await res.json();
-  const v = data.verse;
+        if (!ok) return;
 
-  document.getElementById("verseText").innerText = v.Verse;
-  document.getElementById("verseRef").innerText = v.Reference;
-  document.getElementById("verseMeditation").innerText = v.Meditation;
-
-  if(v.ImageURL){
-    document.getElementById("verseImage").src = v.ImageURL;
-    document.getElementById("verseImage").style.display = "block";
-  }
+        document.querySelector(".verse").innerText = verse.Verse;
+        document.querySelector(".reference").innerText = verse.Reference;
+        document.querySelector(".meditation").innerText = verse.Meditation;
+    } catch (e) {
+        document.querySelector(".verse").innerText = "오류 발생 😢 다시 시도해주세요.";
+    }
 }
 
-function saveMyVerse(){
-  const verse = {
-    text: document.getElementById("verseText").innerText,
-    ref: document.getElementById("verseRef").innerText,
-    med: document.getElementById("verseMeditation").innerText
-  };
-  if(!verse.text) return alert("먼저 말씀을 불러와 주세요!");
-
-  let saved = JSON.parse(localStorage.getItem("savedVerses") || "[]");
-  saved.push(verse);
-  localStorage.setItem("savedVerses", JSON.stringify(saved));
-
-  alert("저장 완료 ✅");
+function saveVerse() {
+    alert("저장 기능은 곧 업데이트 됩니다 😊");
 }
 
-function loadSavedVerses(){
-  const list = document.getElementById("savedList");
-  list.innerHTML = "";
-  let saved = JSON.parse(localStorage.getItem("savedVerses") || "[]");
-
-  if(saved.length === 0){
-    list.innerHTML = "<p>아직 저장한 말씀이 없어요 🙏</p>";
-    return;
-  }
-
-  saved.forEach(v=>{
-    const div = document.createElement("div");
-    div.className="card";
-    div.innerHTML = `<h4>${v.text}</h4><p>${v.ref}</p><p>${v.med}</p>`;
-    list.appendChild(div);
-  });
+function shareVerse() {
+    navigator.clipboard.writeText(window.location.href);
+    alert("링크가 복사되었습니다 🔗");
 }
 
-function share(){
-  const text = document.getElementById("verseText").innerText;
-  if(!text) return alert("먼저 말씀을 불러오세요!");
-
-  navigator.share ?
-    navigator.share({ text }) :
-    alert("📌 공유 기능은 모바일에서 사용 가능합니다.");
-}
+loadRandom();
 </script>
 
 </body>
